@@ -5,9 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace RandomDataGenerator.classes
 {
+    public interface Data
+    {
+        public List<string> ToList();
+        public Data ToData(List<string> data);
+    }
     public struct Database
     {
         public const string defaultLibrariesName = "library";
@@ -18,6 +24,7 @@ namespace RandomDataGenerator.classes
         public const string defaultUsersName = "user";
         public const string defaultPlayersName = "player";
 
+        // first string represents current table name for runtime data fetcing
         public Tuple<string, List<LibraryData>> libraryData;
         public Tuple<string, List<UserData>> userData;
         public Tuple<string, List<PlayerData>> playerData;
@@ -26,7 +33,8 @@ namespace RandomDataGenerator.classes
         public Tuple<string, List<SessionData>> sessionData;
         public Tuple<string, List<LobbyData>> lobbyData;
     }
-    public struct PlayerData
+    #region Player
+    public struct PlayerData : Data
     {
         public int id;
         public string nickname;
@@ -34,7 +42,24 @@ namespace RandomDataGenerator.classes
         public PlayerStats playerStats;
         public string playerStatus;
         public int userID;
-        public List<string> ToList() { return new List<string>(); }
+
+        public Data ToData(List<string> data)
+        {
+            if (data.Count != 6) throw new Exception("Wrong data size format");
+            id = int.Parse(data[0]);
+            nickname = data[1];
+            playerInventory = JsonSerializer.Deserialize<List<Item>>(data[2]);
+            playerStats = JsonSerializer.Deserialize<PlayerStats>(data[3]);
+            playerStatus = data[4];
+            userID = int.Parse(data[5]);
+            return this;
+        }
+
+        public List<string> ToList()
+        {
+            return new List<string>() { id.ToString(), nickname, JsonSerializer.Serialize(playerInventory),
+                                            JsonSerializer.Serialize(playerStats), playerStatus, userID.ToString() };
+        }
     }
     public struct Item
     {
@@ -52,7 +77,9 @@ namespace RandomDataGenerator.classes
         public string name;
         public int level;
     }
-    public struct UserData
+    #endregion
+    #region User
+    public struct UserData : Data
     {
         public int id;
         public string name;
@@ -61,7 +88,25 @@ namespace RandomDataGenerator.classes
         public UserInfo userInfo;
         public string userStatus;
         public int libraryID;
-        public List<string> ToList() { return new List<string>(); }
+
+        public Data ToData(List<string> data)
+        {
+            if (data.Count != 7) throw new Exception("Wrong data size format");
+            id = int.Parse(data[0]);
+            name = data[1];
+            technicalSpecifications = JsonSerializer.Deserialize<TechnicalSpecifications>(data[2]);
+            userIP = data[3];
+            userInfo = JsonSerializer.Deserialize<UserInfo>(data[4]);
+            userStatus = data[5];
+            libraryID = int.Parse(data[6]);
+            return this;
+        }
+
+        public List<string> ToList()
+        {
+            return new List<string>() { id.ToString(), name, JsonSerializer.Serialize(technicalSpecifications),
+                                            JsonSerializer.Serialize(userInfo), userStatus, libraryID.ToString() };
+        }
     }
     public struct TechnicalSpecifications
     {
@@ -79,22 +124,39 @@ namespace RandomDataGenerator.classes
         public List<string> achievments;
         public DateTime registrationDateTime;
     }
-    public struct LobbyData
+    #endregion
+    public struct LobbyData : Data
     {
         public int id;
         public int sessionID;
         public int numberOfParticipants;
         public DateTime creationDate;
         public List<int> playerIDs;
-        public List<string> ToList() { return new List<string>(); }
+
+        public Data ToData(List<string> data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<string> ToList()
+        {
+            return new List<string>();
+        }
     }
-    public struct SessionData
+    #region Session
+    public struct SessionData : Data
     {
         public int id;
         public int serverID;
         public DateTime startDateTime;
         public DateTime endDateTime;
         public SessionInfo sessionInfo;
+
+        public Data ToData(List<string> data)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<string> ToList() { return new List<string>(); }
     }
     public struct SessionInfo
@@ -104,7 +166,8 @@ namespace RandomDataGenerator.classes
         public string gameMode;
         public List<int> participatingLobbies;
     }
-    public struct ServerData
+    #endregion
+    public struct ServerData : Data
     {
         public int id;
         public int archiveID;
@@ -112,9 +175,19 @@ namespace RandomDataGenerator.classes
         public List<int> sessionIDs;
         public bool serverAvailability;
         public int serverCapacity;
-        public List<string> ToList() { return new List<string>(); }
+
+        public Data ToData(List<string> data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<string> ToList()
+        {
+            return new List<string>() { id.ToString(), archiveID.ToString(), location, JsonSerializer.Serialize(sessionIDs),
+                                            serverAvailability.ToString(), serverCapacity.ToString() };
+        }
     }
-    public struct ArchiveData
+    public struct ArchiveData : Data
     {
         public int id;
         public int libraryID;
@@ -123,9 +196,16 @@ namespace RandomDataGenerator.classes
         public int volume;
         public List<int> serverIDs;
         public string region;
+
+        public Data ToData(List<string> data)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<string> ToList() { return new List<string>(); }
     }
-    public struct LibraryData
+    #region Library
+    public struct LibraryData : Data
     {
         public int id;
         public DateTime creationDate { get; set; }
@@ -136,6 +216,16 @@ namespace RandomDataGenerator.classes
         {
             return new List<string>() { id.ToString(), creationDate.ToString("yyyy-MM-dd HH:mm:ss"), JsonSerializer.Serialize(archivesInfo),
                                             JsonSerializer.Serialize(usersInfo), JsonSerializer.Serialize(libraryUsages)};
+        }
+        public Data ToData(List<string> data)
+        {
+            if (data.Count != 5) throw new Exception("Wrong data size format");
+            id = int.Parse(data[0]);
+            creationDate = DateTime.Parse(data[1]);
+            archivesInfo = JsonSerializer.Deserialize<ArchivesInfo>(data[2]);
+            usersInfo = JsonSerializer.Deserialize<UsersInfo>(data[3]);
+            libraryUsages = JsonSerializer.Deserialize<LibraryUsages>(data[4]);
+            return this;
         }
     }
     public struct LibraryUsages
@@ -155,4 +245,5 @@ namespace RandomDataGenerator.classes
         public string cause { get; set; }
         public string result { get; set; }
     }
+    #endregion
 }

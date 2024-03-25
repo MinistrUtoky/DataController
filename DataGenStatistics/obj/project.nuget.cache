@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "N/wPxE0/xNANrvPTn8KUYCKwiI3fS2QPY2PUJWAGDIjLUOXa3qoiQyh9vCD1N8M1RhcTjpfTPR0Ey/IcwBWA8w==",
+  "dgSpecHash": "XhGGhB5IihWFGvpNg9K12O3gUnI3FXTU4qZ/GfCPlHdX2oxc8XV3tH//f+mtLvdOZ2eE3au8ql9Fh3E93W0BQQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Viqtop\\source\\repos\\DataGenStatistics\\DataGenStatistics\\DataGenStatistics.csproj",
+  "projectFilePath": "C:\\Users\\Viqtop\\source\\repos\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Viqtop\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.9\\microsoft.netcore.platforms.3.1.9.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\microsoft.win32.registry\\4.7.0\\microsoft.win32.registry.4.7.0.nupkg.sha512",
@@ -24,8 +24,8 @@
     "C:\\Users\\Viqtop\\.nuget\\packages\\runtime.win-arm64.runtime.native.system.data.sqlclient.sni\\4.4.0\\runtime.win-arm64.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\runtime.win-x64.runtime.native.system.data.sqlclient.sni\\4.4.0\\runtime.win-x64.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\runtime.win-x86.runtime.native.system.data.sqlclient.sni\\4.4.0\\runtime.win-x86.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512",
-    "C:\\Users\\Viqtop\\.nuget\\packages\\scottplot\\5.0.22\\scottplot.5.0.22.nupkg.sha512",
-    "C:\\Users\\Viqtop\\.nuget\\packages\\scottplot.wpf\\5.0.22\\scottplot.wpf.5.0.22.nupkg.sha512",
+    "C:\\Users\\Viqtop\\.nuget\\packages\\scottplot\\5.0.23\\scottplot.5.0.23.nupkg.sha512",
+    "C:\\Users\\Viqtop\\.nuget\\packages\\scottplot.wpf\\5.0.23\\scottplot.wpf.5.0.23.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\skiasharp\\2.88.7\\skiasharp.2.88.7.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\skiasharp.nativeassets.linux.nodependencies\\2.88.7\\skiasharp.nativeassets.linux.nodependencies.2.88.7.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.7\\skiasharp.nativeassets.macos.2.88.7.nupkg.sha512",
