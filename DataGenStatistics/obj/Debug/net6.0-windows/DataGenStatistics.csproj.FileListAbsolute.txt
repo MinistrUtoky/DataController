@@ -1,0 +1,3 @@
+C:\Users\Viqtop\source\repos\DataGenStatistics\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.csproj.AssemblyReference.cache
+C:\Users\Viqtop\source\repos\DataGenStatistics\DataGenStatistics\obj\Debug\net6.0-windows\App.g.cs
+C:\Users\Viqtop\source\repos\DataGenStatistics\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics_MarkupCompile.cache
