@@ -236,29 +236,29 @@
           }
         }
       },
-      "ScottPlot/5.0.22": {
+      "ScottPlot/5.0.23": {
         "dependencies": {
           "SkiaSharp": "2.88.7",
           "SkiaSharp.NativeAssets.Linux.NoDependencies": "2.88.7"
         },
         "runtime": {
           "lib/net6.0/ScottPlot.dll": {
-            "assemblyVersion": "5.0.22.0",
-            "fileVersion": "5.0.22.0"
+            "assemblyVersion": "5.0.23.0",
+            "fileVersion": "5.0.23.0"
           }
         }
       },
-      "ScottPlot.WPF/5.0.22": {
+      "ScottPlot.WPF/5.0.23": {
         "dependencies": {
           "OpenTK": "4.3.0",
           "OpenTK.GLWpfControl": "4.2.3",
-          "ScottPlot": "5.0.22",
+          "ScottPlot": "5.0.23",
           "SkiaSharp.Views.WPF": "2.88.7"
         },
         "runtime": {
           "lib/net6.0-windows7.0/ScottPlot.WPF.dll": {
-            "assemblyVersion": "5.0.22.0",
-            "fileVersion": "5.0.22.0"
+            "assemblyVersion": "5.0.23.0",
+            "fileVersion": "5.0.23.0"
           }
         }
       },
@@ -591,19 +591,19 @@
       "path": "runtime.win-x86.runtime.native.system.data.sqlclient.sni/4.4.0",
       "hashPath": "runtime.win-x86.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512"
     },
-    "ScottPlot/5.0.22": {
+    "ScottPlot/5.0.23": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-P8kmxgcRjGlFU+yHjduoLbkjtpDv+SMqKigdPteqDByrhZuSzxYEgd1xdIhAOvpyh1sXm243HFh8oDLFM5q7zA==",
-      "path": "scottplot/5.0.22",
-      "hashPath": "scottplot.5.0.22.nupkg.sha512"
+      "sha512": "sha512-q+6DAPQ1Bv982iStzsznq3eH8XTZ/X5RXutatPjixDYfXzXsTHsl218o+Tu8Ru+tf8xbf4KGo5FXUhNA9GTtsQ==",
+      "path": "scottplot/5.0.23",
+      "hashPath": "scottplot.5.0.23.nupkg.sha512"
     },
-    "ScottPlot.WPF/5.0.22": {
+    "ScottPlot.WPF/5.0.23": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-+PdERE9UZ3isjrhPcc1ouH4nVbprCv4Y/nkwtvOUd1CLSkq8WrRektSaXfkc/GirpmaAllBGX86T+D4VJM5xww==",
-      "path": "scottplot.wpf/5.0.22",
-      "hashPath": "scottplot.wpf.5.0.22.nupkg.sha512"
+      "sha512": "sha512-L++PXDJ7dLcnpPEZxJQ8T0+eSyQG+drwPE4UlTs1pmV4fwkERyDOEO0k40OivwVUyM50ialqtR7ONgP3wdihww==",
+      "path": "scottplot.wpf/5.0.23",
+      "hashPath": "scottplot.wpf.5.0.23.nupkg.sha512"
     },
     "SkiaSharp/2.88.7": {
       "type": "package",

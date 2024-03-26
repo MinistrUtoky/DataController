@@ -1,5 +1,4 @@
-﻿using Database_Interface.classes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -9,14 +8,13 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.Intrinsics.X86;
-using RandomDataGenerator.classes;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.IO;
 
-namespace RandomDataGenerator
+namespace DataGenStatistics.classes
 {
     internal class DataGenerator
     {
@@ -32,7 +30,7 @@ namespace RandomDataGenerator
         {
             InitDBSandbox();
             FetchAllTablesFromSQL();
-            //GenerateAdditionalData(1,5,5,2,3,4,5);
+            GenerateAdditionalData(0,0,0,0,0,0,0);
             PutDeltaIntoDB();
         }
         private void InitDBSandbox()
@@ -256,7 +254,7 @@ namespace RandomDataGenerator
         private const int minServerCap = 2;
         private const int maxServerCap = 200;
         private const int maxLogVolume = 20;
-        private static readonly string[] possibleLogQuieries = new string[] { "", "", "" };
+        private static readonly string[] possibleLogQuieries = new string[] { "MONSTER KILL", "RAMPAGE", "ULTRA KILL" };
         private static readonly string[] gameMaps = new string[] { "Castle", "Desert", "Meadows", "Forest" };
         private static readonly string[] gameModes = new string[] { "Tug of War", "Deathmatch", "3v3" };
         private static int maxPlayersInLobby = 4;
@@ -327,6 +325,12 @@ namespace RandomDataGenerator
         #endregion
 
         #region User
+        public List<UserData> GenerateUsers(int amount)
+        {
+            List<UserData> users = new List<UserData>();
+            for (int i = 0; i < amount; i++) users.Add(GenerateUser(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
+            return users;
+        }
         public List<UserData> GenerateUsers(int amount, int libraryID)
         {
             List<UserData> users = new List<UserData>();
@@ -403,6 +407,12 @@ namespace RandomDataGenerator
         #endregion
 
         #region Player
+        public List<PlayerData> GeneratePlayers(int amount)
+        {
+            List<PlayerData> players = new List<PlayerData>();
+            for (int i = 0; i < amount; i++) players.Add(GeneratePlayer(RandomMaster<UserData>(database.userData, databaseDelta.userData).id));
+            return players;
+        }
         public List<PlayerData> GeneratePlayers(int amount, int userID)
         {
             List<PlayerData> players = new List<PlayerData>();
@@ -486,6 +496,12 @@ namespace RandomDataGenerator
         #endregion
 
         #region Archive
+        public List<ArchiveData> GenerateArchives(int amount)
+        {
+            List<ArchiveData> archives = new List<ArchiveData>();
+            for (int i = 0; i < amount; i++) archives.Add(GenerateArchive(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
+            return archives;
+        }
         public List<ArchiveData> GenerateArchives(int amount, int libraryID)
         {
             List<ArchiveData> archives = new List<ArchiveData>();
@@ -521,6 +537,12 @@ namespace RandomDataGenerator
         #endregion
 
         #region Server
+        public List<ServerData> GenerateServers(int amount)
+        {
+            List<ServerData> servers = new List<ServerData>();
+            for (int i = 0; i < amount; i++) servers.Add(GenerateServer(RandomMaster<ArchiveData>(database.archiveData, databaseDelta.archiveData).id));
+            return servers;
+        }
         public List<ServerData> GenerateServers(int amount, int archiveID)
         {
             List<ServerData> servers = new List<ServerData>();
@@ -576,6 +598,12 @@ namespace RandomDataGenerator
         #endregion
 
         #region Session
+        public List<SessionData> GenerateSessions(int amount)
+        {
+            List<SessionData> sessions = new List<SessionData>();
+            for (int i = 0; i < amount; i++) sessions.Add(GenerateSession(RandomMaster<ServerData>(database.serverData, databaseDelta.serverData).id));
+            return sessions;
+        }
         public List<SessionData> GenerateSessions(int amount, int serverID)
         {
             List<SessionData> sessions = new List<SessionData>();
@@ -633,6 +661,12 @@ namespace RandomDataGenerator
         #endregion
 
         #region Lobby
+        public List<LobbyData> GenerateLobbies(int amount)
+        {
+            List<LobbyData> lobbies = new List<LobbyData>();
+            for (int i = 0; i < amount; i++) lobbies.Add(GenerateLobby(RandomMaster<SessionData>(database.sessionData, databaseDelta.sessionData).id));
+            return lobbies;
+        }
         public List<LobbyData> GenerateLobbies(int amount, int sessionID)
         {
             List<LobbyData> lobbies = new List<LobbyData>();

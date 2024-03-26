@@ -11,7 +11,7 @@ using System.Drawing;
 using ScottPlot;
 using System.Diagnostics;
 
-namespace RandomDataGenerator.classes
+namespace DataGenStatistics.classes
 {
     public interface Data
     {
@@ -145,6 +145,7 @@ namespace RandomDataGenerator.classes
         public DateTime registrationDateTime;
     }
     #endregion
+    #region Lobby
     public struct LobbyData : Data
     {
         public int id;
@@ -170,6 +171,7 @@ namespace RandomDataGenerator.classes
                                             creationDate.ToString("yyyy-MM-dd HH:mm:ss"), JsonSerializer.Serialize(playerIDs) };
         }
     }
+    #endregion
     #region Session
     public struct SessionData : Data
     {
@@ -208,6 +210,7 @@ namespace RandomDataGenerator.classes
         public List<int> participatingLobbies;
     }
     #endregion
+    #region Server
     public struct ServerData : Data
     {
         public int id;
@@ -235,6 +238,7 @@ namespace RandomDataGenerator.classes
                                             serverAvailability.ToString(), serverCapacity.ToString() };
         }
     }
+    #endregion
     #region Archive
     public struct ArchiveData : Data
     {

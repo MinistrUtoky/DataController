@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Data.SqlClient;
 using System.Diagnostics;
 
-namespace Database_Interface.classes
+namespace DataGenStatistics.classes
 {
     public static class DBClass
     {
@@ -71,18 +71,6 @@ namespace Database_Interface.classes
             if (cn_connection.State != ConnectionState.Closed) cn_connection.Close();
         }
 
-        /*
-
-        1) Изучить методы измерения времени работы произвольного участка кода.
-        2) Написать код, который будет измерять время выполнения произвольного
-        запроса(ов) к БД.
-
-        1) Изучить методы построения графика в выбранном вами ЯП.
-        2) Построить график времени генерации данных для ваших таблиц в
-           зависимости от количества строк в таблице.
-        3) Построить график времени выполнения запросов (SELECT, INSERT, …)
-           для ваших таблиц в зависимости от количества строк в таблице.
-        */
         public static int GetNextId(string table)
         {
             int id = 0;
