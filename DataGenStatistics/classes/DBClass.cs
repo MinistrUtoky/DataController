@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Reflection;
 using System.Data.SqlClient;
+using System.Diagnostics;
 
 namespace Database_Interface.classes
 {
@@ -71,17 +72,6 @@ namespace Database_Interface.classes
         }
 
         /*
-        2) Написать функцию(и)/класс(ы) для создания «песочницы» – копии базы
-        данных и схемы таблиц.
-        3) Написать функцию(и)/класс(ы) для генерации и сохранения данных в
-        таблицы.
-         a. Должна быть возможность генерации для любой из ваших таблиц.
-         b. Должна быть возможность задавать количество создаваемых строк.
-            
-        1) Изучить способы автоматического коммита транзакции и закрытия
-        подключения/курсора в выбранном вами ЯП.
-        2) Переписать предыдущий код путём добавления автоматического
-        коммита/закрытия.
 
         1) Изучить методы измерения времени работы произвольного участка кода.
         2) Написать код, который будет измерять время выполнения произвольного
@@ -112,10 +102,17 @@ namespace Database_Interface.classes
             StringBuilder values = new StringBuilder();
             for (int i = 1; i < new_element.Count; i++)
             {
-                values.Append("'"); values.Append(new_element[i]); values.Append("'");
+                if (new_element[i].ToUpper() == "TRUE" || new_element[i].ToUpper() == "FALSE")
+                {
+                    values.Append("CAST('"); values.Append(new_element[i]); values.Append("' as bit)");
+                }
+                else
+                {
+                    values.Append("'"); values.Append(new_element[i]); values.Append("'");
+                }
                 if (i != new_element.Count - 1) values.Append(",");
             }
-            string sql_Add = "INSERT INTO " + tableName + " VALUES(" + values + ")";
+            string sql_Add = "INSERT INTO \"" + tableName + "\" VALUES(" + values + ")";
             ExecuteSQL(sql_Add);
         }
         public static void DBRemove(string tableName, int id) => DBRemove(tableName, "ID=" + id);

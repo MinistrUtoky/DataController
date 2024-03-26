@@ -14,6 +14,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Windows.Documents;
 using System.Windows.Markup;
+using System.IO;
 
 namespace RandomDataGenerator
 {
@@ -31,26 +32,26 @@ namespace RandomDataGenerator
         {
             InitDBSandbox();
             FetchAllTablesFromSQL();
-            GenerateAdditionalData(0,2,2);
+            //GenerateAdditionalData(1,5,5,2,3,4,5);
             PutDeltaIntoDB();
         }
         private void InitDBSandbox()
         {
             List<string> tableNames = DBClass.GetTableNames();
-            database.libraryData = new Tuple<string, List<LibraryData>>(tableNames[0], new List<LibraryData>());
-            database.archiveData = new Tuple<string, List<ArchiveData>>(tableNames[1], new List<ArchiveData>());
-            database.serverData = new Tuple<string, List<ServerData>>(tableNames[2], new List<ServerData>());
-            database.sessionData = new Tuple<string, List<SessionData>>(tableNames[3], new List<SessionData>());
-            database.lobbyData = new Tuple<string, List<LobbyData>>(tableNames[4], new List<LobbyData>());
-            database.userData = new Tuple<string, List<UserData>>(tableNames[5], new List<UserData>());
-            database.playerData = new Tuple<string, List<PlayerData>>(tableNames[6], new List<PlayerData>());
-            databaseDelta.libraryData = new Tuple<string, List<LibraryData>>(tableNames[0], new List<LibraryData>());
-            databaseDelta.archiveData = new Tuple<string, List<ArchiveData>>(tableNames[1], new List<ArchiveData>());
-            databaseDelta.serverData = new Tuple<string, List<ServerData>>(tableNames[2], new List<ServerData>());
-            databaseDelta.sessionData = new Tuple<string, List<SessionData>>(tableNames[3], new List<SessionData>());
-            databaseDelta.lobbyData = new Tuple<string, List<LobbyData>>(tableNames[4], new List<LobbyData>());
-            databaseDelta.userData = new Tuple<string, List<UserData>>(tableNames[5], new List<UserData>());
-            databaseDelta.playerData = new Tuple<string, List<PlayerData>>(tableNames[6], new List<PlayerData>());
+            database.libraryData = new List<LibraryData>();
+            database.archiveData = new List<ArchiveData>();
+            database.serverData =  new List<ServerData>();
+            database.sessionData = new List<SessionData>();
+            database.lobbyData = new List<LobbyData>();
+            database.userData = new List<UserData>();
+            database.playerData = new List<PlayerData>();
+            databaseDelta.libraryData = new List<LibraryData>();
+            databaseDelta.archiveData = new List<ArchiveData>();
+            databaseDelta.serverData = new List<ServerData>();
+            databaseDelta.sessionData = new List<SessionData>();
+            databaseDelta.lobbyData = new List<LobbyData>();
+            databaseDelta.userData = new List<UserData>();
+            databaseDelta.playerData = new List<PlayerData>();
         }
         private static void SeedDatabaseToMSQLServer()
         {
@@ -134,22 +135,22 @@ namespace RandomDataGenerator
         }
         private void FetchDataFromTable(string tableName)
         {
-            if (tableName == "library")
+            if (tableName == Database.defaultLibrariesName)
             {
-                FetchDataOfType(tableName, database.libraryData.Item2);
+                FetchDataOfType(tableName, database.libraryData);
             }
-            else if (tableName == "user")
-                FetchDataOfType<UserData>(tableName, database.userData.Item2);
-            else if (tableName == "player")
-                FetchDataOfType<PlayerData>(tableName, database.playerData.Item2);
-            else if (tableName == "archive")
-                FetchDataOfType<ArchiveData>(tableName, database.archiveData.Item2);
-            else if (tableName == "dedicated_server")
-                FetchDataOfType<ServerData>(tableName, database.serverData.Item2);
-            else if (tableName == "session")
-                FetchDataOfType<SessionData>(tableName, database.sessionData.Item2);
-            else if (tableName == "lobby")
-                FetchDataOfType<LobbyData>(tableName, database.lobbyData.Item2);
+            else if (tableName == Database.defaultUsersName)
+                FetchDataOfType<UserData>(tableName, database.userData);
+            else if (tableName == Database.defaultPlayersName)
+                FetchDataOfType<PlayerData>(tableName, database.playerData);
+            else if (tableName == Database.defaultArchivesName)
+                FetchDataOfType<ArchiveData>(tableName, database.archiveData);
+            else if (tableName == Database.defaultServersName)
+                FetchDataOfType<ServerData>(tableName, database.serverData);
+            else if (tableName == Database.defaultSessionsName)
+                FetchDataOfType<SessionData>(tableName, database.sessionData);
+            else if (tableName == Database.defaultLobbiesName)
+                FetchDataOfType<LobbyData>(tableName, database.lobbyData);
             else throw new Exception("Non-existent table");
         }
         private static void FetchDataOfType<T>(string tableName, List<T> whereDataIsGoing)
@@ -160,8 +161,12 @@ namespace RandomDataGenerator
                 List<string> rowData = new List<string>();
                 foreach (object? item in row.ItemArray)
                 {
+                    string s;
                     Trace.WriteLine(item?.ToString());
-                    rowData.Add(item?.ToString());
+                    if (item.GetType() == typeof(Byte[]))
+                        rowData.Add(BitConverter.ToBoolean((Byte[])item).ToString());
+                    else
+                        rowData.Add(item?.ToString());
                 }
                 Data d = (Data)(T)Activator.CreateInstance(typeof(T));
                 whereDataIsGoing.Add((T)d.ToData(rowData));
@@ -172,76 +177,51 @@ namespace RandomDataGenerator
         {
             List<string> tableNames = DBClass.GetTableNames();
             for (int i = 0; i < libs; i++)
-                databaseDelta.libraryData.Item2.Add(GenerateLibrary());
+                databaseDelta.libraryData.Add(GenerateLibrary());
             for (int i = 0; i < users; i++)
-                databaseDelta.userData.Item2.Add(GenerateUser(RandomMaster<LibraryData>(database.libraryData.Item2, databaseDelta.libraryData.Item2).id));
+                databaseDelta.userData.Add(GenerateUser(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
             for (int i = 0; i < players; i++)
-                databaseDelta.playerData.Item2.Add(GeneratePlayer(RandomMaster<UserData>(database.userData.Item2, databaseDelta.userData.Item2).id));
+                databaseDelta.playerData.Add(GeneratePlayer(RandomMaster<UserData>(database.userData, databaseDelta.userData).id));
             for (int i = 0; i < archives; i++)
-                databaseDelta.archiveData.Item2.Add(GenerateArchive(RandomMaster<LibraryData>(database.libraryData.Item2, databaseDelta.libraryData.Item2).id));
+                databaseDelta.archiveData.Add(GenerateArchive(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
             for (int i = 0; i < servers; i++)
-                databaseDelta.serverData.Item2.Add(GenerateServer(RandomMaster<ArchiveData>(database.archiveData.Item2, databaseDelta.archiveData.Item2).id));
+                databaseDelta.serverData.Add(GenerateServer(RandomMaster<ArchiveData>(database.archiveData, databaseDelta.archiveData).id));
             for (int i = 0; i < sessions; i++)
-                databaseDelta.sessionData.Item2.Add(GenerateSession(RandomMaster<ServerData>(database.serverData.Item2, databaseDelta.serverData.Item2).id));
+                databaseDelta.sessionData.Add(GenerateSession(RandomMaster<ServerData>(database.serverData, databaseDelta.serverData).id));
             for (int i = 0; i < lobbies; i++)
-                databaseDelta.lobbyData.Item2.Add(GenerateLobby(RandomMaster<SessionData>(database.sessionData.Item2, databaseDelta.sessionData.Item2).id));
+                databaseDelta.lobbyData.Add(GenerateLobby(RandomMaster<SessionData>(database.sessionData, databaseDelta.sessionData).id));
         }
         public void PutDeltaIntoDB()
         {
-            Trace.WriteLine(databaseDelta.libraryData.Item1);
-            foreach (LibraryData d in databaseDelta.libraryData.Item2)
+            using (StreamWriter outputFile = new StreamWriter(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\log.txt"))
             {
-                foreach (string s in d.ToList())
+                foreach (LibraryData d in databaseDelta.libraryData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultLibrariesName, d.ToList());
                 }
-            }
-            Trace.WriteLine(databaseDelta.archiveData.Item1);
-            foreach (ArchiveData d in databaseDelta.archiveData.Item2)
-            {
-                foreach (string s in d.ToList())
+                foreach (UserData d in databaseDelta.userData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultUsersName, d.ToList());
                 }
-            }
-            Trace.WriteLine(databaseDelta.serverData.Item1);
-            foreach (ServerData d in databaseDelta.serverData.Item2)
-            {
-                foreach (string s in d.ToList())
+                foreach (PlayerData d in databaseDelta.playerData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultPlayersName, d.ToList());
                 }
-            }
-            Trace.WriteLine(databaseDelta.sessionData.Item1);
-            foreach (SessionData d in databaseDelta.sessionData.Item2)
-            {
-                foreach (string s in d.ToList())
+                foreach (ArchiveData d in databaseDelta.archiveData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultArchivesName, d.ToList());
                 }
-            }
-            Trace.WriteLine(databaseDelta.lobbyData.Item1);
-            foreach (LobbyData d in databaseDelta.lobbyData.Item2)
-            {
-                foreach (string s in d.ToList())
+                foreach (ServerData d in databaseDelta.serverData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultServersName, d.ToList());
                 }
-            }
-            Trace.WriteLine(databaseDelta.userData.Item1);
-            foreach (UserData d in databaseDelta.userData.Item2)
-            {
-                foreach (string s in d.ToList())
+                foreach (SessionData d in databaseDelta.sessionData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultSessionsName, d.ToList());
                 }
-            }
-            Trace.WriteLine(databaseDelta.playerData.Item1);
-            foreach (PlayerData d in databaseDelta.playerData.Item2)
-            {
-                foreach (string s in d.ToList())
+                foreach (LobbyData d in databaseDelta.lobbyData)
                 {
-                    Trace.WriteLine(s);
+                    DBClass.DBInsert(Database.defaultLobbiesName, d.ToList());
                 }
             }
         }
@@ -296,7 +276,11 @@ namespace RandomDataGenerator
         }
         public LibraryData GenerateLibrary() {
             LibraryData newLibrary = new LibraryData();
-            int newId = Math.Max(DBClass.GetNextId(database.libraryData.Item1), databaseDelta.libraryData.Item2.Max(l => l.id));
+            int newId;
+            if (databaseDelta.libraryData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultLibrariesName);
+            else
+                newId = databaseDelta.libraryData.Max(l => l.id) + 1;
             newLibrary.id = newId;
             newLibrary.creationDate = GenerateCreationDate();
             newLibrary.archivesInfo = new ArchivesInfo
@@ -352,18 +336,20 @@ namespace RandomDataGenerator
         public UserData GenerateUser(int libraryID)
         {
             UserData newUser = new UserData();
-            LibraryData master = database.libraryData.Item2.Find(library => library.id == libraryID);
+            List<LibraryData> tb = new List<LibraryData>();
+            tb.AddRange(database.libraryData); tb.AddRange(databaseDelta.libraryData);
+            LibraryData master = tb.Find(library => library.id == libraryID);
             int newId;
-            if (databaseDelta.userData.Item2.Count == 0)
-                newId = DBClass.GetNextId(database.userData.Item1);
+            if (databaseDelta.userData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultUsersName);
             else
-                newId = databaseDelta.userData.Item2.Max(l => l.id) + 1;
+                newId = databaseDelta.userData.Max(l => l.id) + 1;
             newUser.id = newId;
             newUser.name = GenerateUsername();
             newUser.userIP = GenerateUserIP();
             newUser.technicalSpecifications = GenerateTechnicalSpecifications();
             newUser.userInfo = GenerateUserInfo();
-            newUser.userInfo.registrationDateTime = GenerateDatetimeAfter(database.libraryData.Item2.Find(library => library.id == libraryID).creationDate);
+            newUser.userInfo.registrationDateTime = GenerateDatetimeAfter(database.libraryData.Find(library => library.id == libraryID).creationDate);
             newUser.userStatus = GenerateUserStatus();
             newUser.libraryID = libraryID;
             master.usersInfo.userIDs.Add(newUser.id);
@@ -402,11 +388,11 @@ namespace RandomDataGenerator
             UserInfo newUserInfo = new UserInfo();
             Random r = new Random();
             newUserInfo.location = userLocations[r.Next(0, userLocations.Length)];
-            newUserInfo.realName = userLocations[r.Next(0, realNames.Length)];
-            newUserInfo.customURL = userLocations[r.Next(0, customURLs.Length)];
+            newUserInfo.realName = usernames[r.Next(0, realNames.Length)];
+            newUserInfo.customURL = customURLs[r.Next(0, customURLs.Length)];
             newUserInfo.achievments = new List<string>();
             for (int i = 0; i < maxNumberOfAchievmentsOnStart; i++)
-                newUserInfo.achievments.Add(userLocations[r.Next(0, achievments.Length)]);
+                newUserInfo.achievments.Add(achievments[r.Next(0, achievments.Length)]);
             return newUserInfo;
         }
         private static string GenerateUserStatus() 
@@ -427,10 +413,10 @@ namespace RandomDataGenerator
         {
             PlayerData newPlayer = new PlayerData();
             int newId;
-            if (databaseDelta.playerData.Item2.Count == 0)
-                newId = DBClass.GetNextId(database.playerData.Item1);
+            if (databaseDelta.playerData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultPlayersName);
             else
-                newId = databaseDelta.playerData.Item2.Max(l => l.id) + 1;
+                newId = databaseDelta.playerData.Max(l => l.id) + 1;
             newPlayer.id = newId; 
             newPlayer.nickname = GeneratePlayerNickname();
             newPlayer.userID = userID;
@@ -509,12 +495,14 @@ namespace RandomDataGenerator
         public ArchiveData GenerateArchive(int libraryID)
         {
             ArchiveData newArchive = new ArchiveData();
-            LibraryData master = database.libraryData.Item2.Find(library => library.id == libraryID);
+            List<LibraryData> tb = new List<LibraryData>();
+            tb.AddRange(database.libraryData); tb.AddRange(databaseDelta.libraryData);
+            LibraryData master = tb.Find(library => library.id == libraryID);
             int newId;
-            if (databaseDelta.archiveData.Item2.Count == 0)
-                newId = DBClass.GetNextId(database.archiveData.Item1);
+            if (databaseDelta.archiveData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultArchivesName);
             else
-                newId = databaseDelta.archiveData.Item2.Max(l => l.id) + 1;
+                newId = databaseDelta.archiveData.Max(l => l.id) + 1;
             newArchive.id = newId;
             newArchive.libraryID = libraryID;
             newArchive.initializationDateTime = GenerateDatetimeAfter(master.creationDate);
@@ -542,19 +530,29 @@ namespace RandomDataGenerator
         public ServerData GenerateServer(int archiveID)
         {
             ServerData newServer = new ServerData();
-            ArchiveData master = database.archiveData.Item2.Find(archive => archive.id == archiveID);
-            int newId;
-            if (databaseDelta.serverData.Item2.Count == 0)
-                newId = DBClass.GetNextId(database.serverData.Item1);
+            int masterIndex; List<ArchiveData> masterHolder;
+            if (database.archiveData.Any(archive => archive.id == archiveID))
+            {
+                masterHolder = database.archiveData;
+                masterIndex = database.archiveData.FindIndex(archive => archive.id == archiveID);
+            }
             else
-                newId = databaseDelta.serverData.Item2.Max(l => l.id) + 1;
+            {
+                masterHolder = databaseDelta.archiveData;
+                masterIndex = databaseDelta.archiveData.FindIndex(archive => archive.id == archiveID);
+            }
+            int newId;
+            if (databaseDelta.serverData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultServersName);
+            else
+                newId = databaseDelta.serverData.Max(l => l.id) + 1;
             newServer.id = newId;
             newServer.archiveID = archiveID;
             newServer.location = GenerateLocation();
             newServer.sessionIDs = new List<int>();
             newServer.serverAvailability = GenerateServerAvailability();
             newServer.serverCapacity = GenerateServerCapacity();
-            master.serverIDs.Add(newServer.id);
+            masterHolder[masterIndex].serverIDs.Add(newServer.id);
             return newServer;
         }
         private static string GenerateLocation()
@@ -587,13 +585,17 @@ namespace RandomDataGenerator
         public SessionData GenerateSession(int serverID)
         {
             SessionData newSession = new SessionData();
-            ServerData master = database.serverData.Item2.Find(server => server.id == serverID);
-            ArchiveData mastersMaster = database.archiveData.Item2.Find(archive => master.archiveID == archive.id);
+            List<ServerData> tb = new List<ServerData>();
+            tb.AddRange(database.serverData); tb.AddRange(databaseDelta.serverData);
+            ServerData master = tb.Find(server => server.id == serverID);
+            List<ArchiveData> tb2 = new List<ArchiveData>();
+            tb2.AddRange(database.archiveData); tb2.AddRange(databaseDelta.archiveData);
+            ArchiveData mastersMaster = tb2.Find(archive => master.archiveID == archive.id);
             int newId;
-            if (databaseDelta.sessionData.Item2.Count == 0)
-                newId = DBClass.GetNextId(database.sessionData.Item1);
+            if (databaseDelta.sessionData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultSessionsName);
             else
-                newId = databaseDelta.sessionData.Item2.Max(l => l.id) + 1;
+                newId = databaseDelta.sessionData.Max(l => l.id) + 1;
             newSession.id = newId;
             newSession.serverID = serverID;
             newSession.startDateTime = GenerateDatetime(mastersMaster.initializationDateTime, mastersMaster.suspensionDateTime);
@@ -606,7 +608,8 @@ namespace RandomDataGenerator
         {
             SessionInfo newSession = new SessionInfo();
             newSession.gameLog = new List<string>();
-            for (int i = 0; i < maxLogVolume; i++) newSession.gameLog?.Add(GenerateGameLogQuery());
+            Random random = new Random();
+            for (int i = 0; i < random.Next(0,maxLogVolume+1); i++) newSession.gameLog?.Add(GenerateGameLogQuery());
             newSession.gameMap = GenerateGameMap();
             newSession.gameMode = GenerateGameMode();
             newSession.participatingLobbies = new List<int>();
@@ -639,12 +642,14 @@ namespace RandomDataGenerator
         public LobbyData GenerateLobby(int sessionID)
         {
             LobbyData newLobby = new LobbyData();
-            SessionData master = database.sessionData.Item2.Find(session => session.id == sessionID);
+            List<SessionData> tb = new List<SessionData>();
+            tb.AddRange(database.sessionData); tb.AddRange(databaseDelta.sessionData);
+            SessionData master = tb.First(session => session.id == sessionID);
             int newId;
-            if (databaseDelta.lobbyData.Item2.Count == 0)
-                newId = DBClass.GetNextId(database.lobbyData.Item1);
+            if (databaseDelta.lobbyData.Count == 0)
+                newId = DBClass.GetNextId(Database.defaultLobbiesName);
             else
-                newId = databaseDelta.lobbyData.Item2.Max(l => l.id) + 1;
+                newId = databaseDelta.lobbyData.Max(l => l.id) + 1;
             newLobby.id = newId; 
             newLobby.sessionID = sessionID;
             newLobby.playerIDs = RandomPlayerIds();
@@ -655,9 +660,9 @@ namespace RandomDataGenerator
         }
         public List<int> RandomPlayerIds() {
             List<int> someIds = new List<int>();
-            List<PlayerData> players = database.playerData.Item2.Concat(databaseDelta.playerData.Item2).ToList();
+            List<PlayerData> players = database.playerData.Concat(databaseDelta.playerData).ToList();
             Random r = new Random();
-            for (int i = 0; i < Math.Min(maxPlayersInLobby, players.Count); i++)
+            for (int i = 0; i < Math.Min(maxPlayersInLobby, r.Next(0, players.Count)); i++)
                 someIds.Add(players[r.Next(0, players.Count)].id);
             return someIds;
         }
@@ -667,6 +672,7 @@ namespace RandomDataGenerator
         private static DateTime GenerateDatetime() => GenerateDatetime(DateTime.UnixEpoch, DateTime.Now);
         private static DateTime GenerateDatetime(DateTime startDate, DateTime endDate)
         {
+            if ((startDate - DateTime.UnixEpoch).TotalSeconds < 0) startDate = DateTime.UnixEpoch;
             var random = new Random();
             TimeSpan timeSpan = endDate - startDate;
             TimeSpan newSpan = new TimeSpan(0, 0, random.Next(0, (int)(timeSpan.TotalSeconds + 1)));
