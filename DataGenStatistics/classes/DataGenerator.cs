@@ -18,14 +18,10 @@ namespace DataGenStatistics.classes
 {
     internal class DataGenerator
     {
-        //
-        // Add ids to parent lists 
-        //
-
         public static DataGenerator Instance = new DataGenerator();
         private Database database = new Database();
         private Database databaseDelta = new Database();
-
+        private static Random r = new Random();
         public void Init()
         {
             InitDBSandbox();
@@ -127,7 +123,7 @@ namespace DataGenStatistics.classes
         {
             foreach (string tableName in DBClass.GetTableNames())
             {
-                Trace.WriteLine(tableName);
+                //Trace.WriteLine(tableName);
                 FetchDataFromTable(tableName);
             }
         }
@@ -159,8 +155,7 @@ namespace DataGenStatistics.classes
                 List<string> rowData = new List<string>();
                 foreach (object? item in row.ItemArray)
                 {
-                    string s;
-                    Trace.WriteLine(item?.ToString());
+                    //Trace.WriteLine(item?.ToString());
                     if (item.GetType() == typeof(Byte[]))
                         rowData.Add(BitConverter.ToBoolean((Byte[])item).ToString());
                     else
@@ -189,7 +184,7 @@ namespace DataGenStatistics.classes
             for (int i = 0; i < lobbies; i++)
                 databaseDelta.lobbyData.Add(GenerateLobby(RandomMaster<SessionData>(database.sessionData, databaseDelta.sessionData).id));
         }
-        public void PutDeltaIntoDB()
+        private void PutDeltaIntoDB()
         {
             using (StreamWriter outputFile = new StreamWriter(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\log.txt"))
             {
@@ -295,7 +290,6 @@ namespace DataGenStatistics.classes
         private static DateTime GenerateCreationDate() => GenerateDatetime();
         private static LibraryUsages GenerateRandomNumberOfLibraryUsages(int upTo)
         {
-            Random r = new Random();
             return GenerateLibraryUsagesInfo(r.Next(0, upTo + 1));
         }
         private static LibraryUsages GenerateLibraryUsagesInfo(int n)
@@ -314,12 +308,10 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateCause()
         {
-            Random r = new Random();
             return causes[r.Next(0, causes.Length)];
         }
         private static string GenerateResult()
         {
-            Random r = new Random();
             return results[r.Next(0, causes.Length)];
         }
         #endregion
@@ -361,17 +353,14 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateUsername()
         {
-            Random r = new Random();
             StringBuilder username = new StringBuilder();
             username.Append(usernames[r.Next(0, usernames.Length)]);
-            r = new Random(DBClass.GetNextId(Database.defaultUsersName));
-            username.Append(r.Next(0, 1000000));
+            username.Append((int)Math.Pow(DBClass.GetNextId(Database.defaultUsersName)*2, 3)+7);
             return username.ToString();
         }
         private static TechnicalSpecifications GenerateTechnicalSpecifications()
         {
             TechnicalSpecifications technicalSpecifications = new TechnicalSpecifications();
-            Random r = new Random();
             technicalSpecifications.OS = OSs[r.Next(0, OSs.Length)];
             technicalSpecifications.RAM = RAMs[r.Next(0, RAMs.Length)];
             technicalSpecifications.GPU = GPUs[r.Next(0, GPUs.Length)];
@@ -381,7 +370,6 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateUserIP()
         {
-            Random r = new Random();
             var data = new byte[4];
             r.NextBytes(data);
             IPAddress ip = new IPAddress(data);
@@ -390,7 +378,6 @@ namespace DataGenStatistics.classes
         private static UserInfo GenerateUserInfo()
         {
             UserInfo newUserInfo = new UserInfo();
-            Random r = new Random();
             newUserInfo.location = userLocations[r.Next(0, userLocations.Length)];
             newUserInfo.realName = usernames[r.Next(0, realNames.Length)];
             newUserInfo.customURL = customURLs[r.Next(0, customURLs.Length)];
@@ -401,7 +388,6 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateUserStatus() 
         {
-            Random r = new Random();
             return statuses[r.Next(0, statuses.Length)];
         }
         #endregion
@@ -437,16 +423,15 @@ namespace DataGenStatistics.classes
         }
         private static string GeneratePlayerNickname()
         {
-            Random r = new Random();
+            
             StringBuilder name = new StringBuilder();
             name.Append(playerNames[r.Next(0, playerNames.Length)]);
-            r = new Random(DBClass.GetNextId(Database.defaultPlayersName));
-            name.Append(r.Next(0, 1000000));
+            name.Append((int)Math.Pow(DBClass.GetNextId(Database.defaultUsersName) * 3, 2) + 31);
             return name.ToString();
         }
         private static List<Item> GenerateInventory()
         {
-            Random r = new Random();
+            
             List<Item> inv = new List<Item>();
             List<string> itemsNotYetInInv = items.ToList();
             for (int i = 0; i < r.Next(0, Math.Min(items.Length, maxNumberOfItemsOnStart)+1) & itemsNotYetInInv.Count > 0; i++)
@@ -465,7 +450,6 @@ namespace DataGenStatistics.classes
             PlayerStats stats = new PlayerStats();
             stats.perks = new List<string>();
             stats.skills = new List<Skill>();
-            Random r = new Random();
             List<string> unusedPerks = perks.ToList();
             List<string> unusedSkills = skills.ToList();
             for (int i = 0; i < r.Next(0, Math.Min(perks.Length,maxNumberOfPerksOnStart) + 1); i++)
@@ -490,7 +474,6 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateStatus()
         {
-            Random r = new Random();
             return statuses[r.Next(0, statuses.Length)];
         }
         #endregion
@@ -531,7 +514,6 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateRegion()
         {
-            Random r = new Random();
             return regions[r.Next(0, regions.Length)];
         }
         #endregion
@@ -579,7 +561,6 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateLocation()
         {
-            Random r = new Random();
             var data = new byte[4];
             r.NextBytes(data);
             IPAddress ip = new IPAddress(data);
@@ -587,12 +568,12 @@ namespace DataGenStatistics.classes
         }
         private static bool GenerateServerAvailability()
         {
-            Random r = new Random();
+            
             return r.Next(0,2)==0;
         }
         private static int GenerateServerCapacity()
         {
-            Random r = new Random();
+            
             return r.Next(minServerCap, maxServerCap+1)*serverCapacityDenominator;
         }
         #endregion
@@ -636,8 +617,7 @@ namespace DataGenStatistics.classes
         {
             SessionInfo newSession = new SessionInfo();
             newSession.gameLog = new List<string>();
-            Random random = new Random();
-            for (int i = 0; i < random.Next(0,maxLogVolume+1); i++) newSession.gameLog?.Add(GenerateGameLogQuery());
+            for (int i = 0; i < r.Next(0,maxLogVolume+1); i++) newSession.gameLog?.Add(GenerateGameLogQuery());
             newSession.gameMap = GenerateGameMap();
             newSession.gameMode = GenerateGameMode();
             newSession.participatingLobbies = new List<int>();
@@ -645,17 +625,17 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateGameLogQuery()
         {
-            Random r = new Random();
+            
             return possibleLogQuieries[r.Next(0, possibleLogQuieries.Length)];
         }
         private static string GenerateGameMap()
         {
-            Random r = new Random();
+            
             return gameMaps[r.Next(0, gameMaps.Length)];
         }
         private static string GenerateGameMode()
         {
-            Random r = new Random();
+            
             return gameModes[r.Next(0, gameModes.Length)];
         }
         #endregion
@@ -678,7 +658,7 @@ namespace DataGenStatistics.classes
             LobbyData newLobby = new LobbyData();
             List<SessionData> tb = new List<SessionData>();
             tb.AddRange(database.sessionData); tb.AddRange(databaseDelta.sessionData);
-            SessionData master = tb.First(session => session.id == sessionID);
+            SessionData master = tb.Find(session => session.id == sessionID);
             int newId;
             if (databaseDelta.lobbyData.Count == 0)
                 newId = DBClass.GetNextId(Database.defaultLobbiesName);
@@ -695,7 +675,7 @@ namespace DataGenStatistics.classes
         public List<int> RandomPlayerIds() {
             List<int> someIds = new List<int>();
             List<PlayerData> players = database.playerData.Concat(databaseDelta.playerData).ToList();
-            Random r = new Random();
+            
             for (int i = 0; i < Math.Min(maxPlayersInLobby, r.Next(0, players.Count)); i++)
                 someIds.Add(players[r.Next(0, players.Count)].id);
             return someIds;
@@ -707,9 +687,8 @@ namespace DataGenStatistics.classes
         private static DateTime GenerateDatetime(DateTime startDate, DateTime endDate)
         {
             if ((startDate - DateTime.UnixEpoch).TotalSeconds < 0) startDate = DateTime.UnixEpoch;
-            var random = new Random();
             TimeSpan timeSpan = endDate - startDate;
-            TimeSpan newSpan = new TimeSpan(0, 0, random.Next(0, (int)(timeSpan.TotalSeconds + 1)));
+            TimeSpan newSpan = new TimeSpan(0, 0, r.Next(0, (int)(timeSpan.TotalSeconds + 1)));
             return startDate + newSpan;
         }
         private static DateTime GenerateDatetimeAfter(DateTime dt) => GenerateDatetime(dt, DateTime.Now);
@@ -717,7 +696,7 @@ namespace DataGenStatistics.classes
         public T RandomMaster<T>(List<T> possibeMastersInDB, List<T> possibleMastersInDBDelta)
         {
             List<T> list = possibeMastersInDB.Concat(possibleMastersInDBDelta).ToList();
-            Random r = new Random();
+            
             return list[r.Next(0, list.Count)];
         }
         #endregion

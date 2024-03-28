@@ -9,6 +9,7 @@ namespace DataGenStatistics.classes
 {
     internal class ProcessTimers
     {
+        private static Stopwatch masterWatch = Stopwatch.StartNew();
         public static void TimerTest()
         {
             List<Delegate> delegates = new List<Delegate>()
@@ -29,17 +30,16 @@ namespace DataGenStatistics.classes
         public static List<long> SeveralProcessesTimeInMilliseconds(List<Delegate> processes)
         {
             List<long> times = new();
-            DBClass.GetTableNames(); // connecting to server beforehand to get rid of startup delay
             foreach (Delegate d in processes)
                 times.Add(ProcessTimeInMilliseconds(d));
             return times;
         }
         public static long ProcessTimeInMilliseconds(Delegate process)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            masterWatch.Restart();
             process?.DynamicInvoke();
-            watch.Stop();
-            return watch.ElapsedMilliseconds;
+            masterWatch.Stop();
+            return masterWatch.ElapsedMilliseconds;
         }
     }
 }
