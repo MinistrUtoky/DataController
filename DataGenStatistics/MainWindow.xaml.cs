@@ -29,12 +29,16 @@ namespace DataGenStatistics
             InitializeComponent();
             DataGenerator.Instance.Init();
             ProcessTimers.TimerTest();
-            //PlotGenerators();
+            PlotGenerators();
             //PlotSelectQueries();
             //PlotInsertQueries();
             //PlotRemoveQueries();
             //PlotUpdateQueries();
         }
+        /// <summary>
+        /// Calculates generation time result data for globally given numbers of rows
+        /// Plots with Plot()
+        /// </summary>
         private void PlotGenerators()
         {
             int[] numberOfRows = Enumerable.Range(1, maxSteps).Select(a => a * numberOfRowsPerStep).ToArray();
@@ -70,6 +74,11 @@ namespace DataGenStatistics
             Plot(GeneratorTimings, "Time required for generation",
                  numberOfRows, results, "generator_timings.png");
         }
+
+        /// <summary>
+        /// Calculates selection time result data for globally given numbers of rows
+        /// Plots with Plot()
+        /// </summary>
         private void PlotSelectQueries()
         {
             int[] numberOfRows = Enumerable.Range(1, maxSteps).Select(a => a * numberOfRowsPerStep).ToArray();
@@ -117,6 +126,11 @@ namespace DataGenStatistics
             Plot(SelectQueryTimings, "Time required for selection",
                  numberOfRows, results, "selection_timings.png");
         }
+
+        /// <summary>
+        /// Calculates insertion time result data for globally given numbers of rows
+        /// Plots with Plot()
+        /// </summary>
         private void PlotInsertQueries()
         {
             int[] numberOfRows = Enumerable.Range(1, maxSteps).Select(a => a * numberOfRowsPerStep).ToArray();
@@ -168,6 +182,11 @@ namespace DataGenStatistics
             Plot(InsertQueryTimings, "Time required for insertion",
                  numberOfRows, results, "insertion_timings.png");
         }
+
+        /// <summary>
+        /// Calculates removal time result data for globally given numbers of rows
+        /// Plots with Plot()
+        /// </summary>
         private void PlotRemoveQueries()
         {
             int[] numberOfRows = Enumerable.Range(1, maxSteps).Select(a => a * numberOfRowsPerStep).ToArray();
@@ -223,6 +242,11 @@ namespace DataGenStatistics
             Plot(RemoveQueryTimings, "Time required for removal",
                  numberOfRows, results, "removal_timings.png");
         }
+
+        /// <summary>
+        /// Calculates update time result data for globally given numbers of rows
+        /// Plots with Plot()
+        /// </summary>
         private void PlotUpdateQueries()
         {
             int[] numberOfRows = Enumerable.Range(1, maxSteps).Select(a => a * numberOfRowsPerStep).ToArray();
@@ -283,6 +307,27 @@ namespace DataGenStatistics
             Plot(UpdateQueryTimings, "Time required for update",
                  numberOfRows, results, "update_timings.png");
         }
+
+        /// <summary>
+        /// General plotting method
+        /// </summary>
+        /// <param name="plot">
+        /// WpfPlot to draw on
+        /// </param>
+        /// <param name="plotName">
+        /// Title of the plot shown on top of WpfPlot widget
+        /// </param>
+        /// <param name="numberOfRows">
+        /// Array of row counts for each test sequence
+        /// </param>
+        /// <param name="results">
+        /// Test sequences results
+        /// </param> 
+        /// <param name="saveFile">
+        /// File to save plot image to
+        /// </param>
+        /// <returns>
+        /// </returns>
         private void Plot(WpfPlot plot, string plotName,
                           int[] numberOfRows, Dictionary<string, List<long>> results,
                           string saveFile)
