@@ -6,14 +6,22 @@
         xmlns:local="clr-namespace:DataGenStatistics"
         xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="480">
+        Title="MainWindow" Height="900" Width="960">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
 
         <ScottPlot:WpfPlot x:Name="GeneratorTimings" />
-        <ScottPlot:WpfPlot x:Name="QueryTimings" Grid.Row="1"/>
+        <ScottPlot:WpfPlot x:Name="InsertQueryTimings" Grid.Row="1"/>
+        <ScottPlot:WpfPlot x:Name="SelectQueryTimings" Grid.Column="1"/>
+        <ScottPlot:WpfPlot x:Name="RemoveQueryTimings" Grid.Row="1" Grid.Column="1"/>
+        <ScottPlot:WpfPlot x:Name="UpdateQueryTimings" Grid.Row="2"/>
     </Grid>
 </Window>

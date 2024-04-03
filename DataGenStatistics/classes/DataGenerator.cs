@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Runtime.Intrinsics.Arm;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.Intrinsics.X86;
-using System.Diagnostics;
-using Newtonsoft.Json;
-using System.Windows.Documents;
-using System.Windows.Markup;
-using System.IO;
 
 namespace DataGenStatistics.classes
 {
@@ -21,13 +13,15 @@ namespace DataGenStatistics.classes
         public static DataGenerator Instance = new DataGenerator();
         private Database database = new Database();
         private Database databaseDelta = new Database();
-        private static Random r = new Random();
+        private static Random rand = new Random();
         public void Init()
         {
             InitDBSandbox();
+            //DropAll();
+            //SeedDatabaseToMSQLServer();
             FetchAllTablesFromSQL();
-            GenerateAdditionalData(0,0,0,0,0,0,0);
-            PutDeltaIntoDB();
+            //GenerateAdditionalData(0,0,0,0,0,0,0);
+            //PutDeltaIntoDB();
         }
         private void InitDBSandbox()
         {
@@ -119,6 +113,16 @@ namespace DataGenStatistics.classes
                                                                  "NVARCHAR(MAX) NULL"},
                                               new List<string> { "", Database.defaultSessionsName + "(ID)", "", "", "" });
         }
+        private static void DropAll()
+        {
+            DBClass.DropTable("player");
+            DBClass.DropTable("user");
+            DBClass.DropTable("lobby");
+            DBClass.DropTable("session");
+            DBClass.DropTable("dedicated_server");
+            DBClass.DropTable("archive");
+            DBClass.DropTable("library");
+        }
         private void FetchAllTablesFromSQL()
         {
             foreach (string tableName in DBClass.GetTableNames())
@@ -130,9 +134,7 @@ namespace DataGenStatistics.classes
         private void FetchDataFromTable(string tableName)
         {
             if (tableName == Database.defaultLibrariesName)
-            {
                 FetchDataOfType(tableName, database.libraryData);
-            }
             else if (tableName == Database.defaultUsersName)
                 FetchDataOfType<UserData>(tableName, database.userData);
             else if (tableName == Database.defaultPlayersName)
@@ -165,59 +167,50 @@ namespace DataGenStatistics.classes
                 whereDataIsGoing.Add((T)d.ToData(rowData));
             }
         }
-        private void GenerateAdditionalData(int libs=0, int users = 0, int players = 0, int archives=0, int servers=0, 
-                                            int sessions=0, int lobbies = 0)
+        public void PutDeltaPartIntoDB(int libs = 0, int users = 0, int players = 0, int archives = 0, int servers = 0,
+                                            int sessions = 0, int lobbies = 0)
         {
-            List<string> tableNames = DBClass.GetTableNames();
-            for (int i = 0; i < libs; i++)
-                databaseDelta.libraryData.Add(GenerateLibrary());
-            for (int i = 0; i < users; i++)
-                databaseDelta.userData.Add(GenerateUser(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
-            for (int i = 0; i < players; i++)
-                databaseDelta.playerData.Add(GeneratePlayer(RandomMaster<UserData>(database.userData, databaseDelta.userData).id));
-            for (int i = 0; i < archives; i++)
-                databaseDelta.archiveData.Add(GenerateArchive(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
-            for (int i = 0; i < servers; i++)
-                databaseDelta.serverData.Add(GenerateServer(RandomMaster<ArchiveData>(database.archiveData, databaseDelta.archiveData).id));
-            for (int i = 0; i < sessions; i++)
-                databaseDelta.sessionData.Add(GenerateSession(RandomMaster<ServerData>(database.serverData, databaseDelta.serverData).id));
-            for (int i = 0; i < lobbies; i++)
-                databaseDelta.lobbyData.Add(GenerateLobby(RandomMaster<SessionData>(database.sessionData, databaseDelta.sessionData).id));
+            if (libs > databaseDelta.libraryData.Count || users > databaseDelta.userData.Count ||
+                players > databaseDelta.playerData.Count || archives > databaseDelta.archiveData.Count ||
+                servers > databaseDelta.serverData.Count || sessions > databaseDelta.sessionData.Count ||
+                lobbies > databaseDelta.lobbyData.Count)
+                throw new Exception("Length of database delta's part exceeds that of the delta itself");
+            database.libraryData.AddRange(databaseDelta.libraryData.GetRange(0, libs));
+            database.userData.AddRange(databaseDelta.userData.GetRange(0, users));
+            database.playerData.AddRange(databaseDelta.playerData.GetRange(0, players));
+            database.archiveData.AddRange(databaseDelta.archiveData.GetRange(0, archives));
+            database.serverData.AddRange(databaseDelta.serverData.GetRange(0, servers));
+            database.sessionData.AddRange(databaseDelta.sessionData.GetRange(0, sessions));
+            database.lobbyData.AddRange(databaseDelta.lobbyData.GetRange(0, lobbies));
+            DBClass.DBInsertMultiple(Database.defaultLibrariesName, databaseDelta.libraryData.GetRange(0, libs).Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultUsersName, databaseDelta.userData.GetRange(0, users).Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultPlayersName, databaseDelta.playerData.GetRange(0, players).Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultArchivesName, databaseDelta.archiveData.GetRange(0, archives).Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultServersName, databaseDelta.serverData.GetRange(0, servers).Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultSessionsName, databaseDelta.sessionData.GetRange(0, sessions).Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultLobbiesName, databaseDelta.lobbyData.GetRange(0, lobbies).Cast<Data>().ToList());
+            databaseDelta.libraryData.RemoveRange(0, libs);
+            databaseDelta.userData.RemoveRange(0, users);
+            databaseDelta.playerData.RemoveRange(0, players);
+            databaseDelta.archiveData.RemoveRange(0, archives);
+            databaseDelta.serverData.RemoveRange(0, servers);
+            databaseDelta.sessionData.RemoveRange(0, sessions);
+            databaseDelta.lobbyData.RemoveRange(0, lobbies);
         }
         private void PutDeltaIntoDB()
         {
-            using (StreamWriter outputFile = new StreamWriter(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\log.txt"))
-            {
-                foreach (LibraryData d in databaseDelta.libraryData)
-                {
-                    DBClass.DBInsert(Database.defaultLibrariesName, d.ToList());
-                }
-                foreach (UserData d in databaseDelta.userData)
-                {
-                    DBClass.DBInsert(Database.defaultUsersName, d.ToList());
-                }
-                foreach (PlayerData d in databaseDelta.playerData)
-                {
-                    DBClass.DBInsert(Database.defaultPlayersName, d.ToList());
-                }
-                foreach (ArchiveData d in databaseDelta.archiveData)
-                {
-                    DBClass.DBInsert(Database.defaultArchivesName, d.ToList());
-                }
-                foreach (ServerData d in databaseDelta.serverData)
-                {
-                    DBClass.DBInsert(Database.defaultServersName, d.ToList());
-                }
-                foreach (SessionData d in databaseDelta.sessionData)
-                {
-                    DBClass.DBInsert(Database.defaultSessionsName, d.ToList());
-                }
-                foreach (LobbyData d in databaseDelta.lobbyData)
-                {
-                    DBClass.DBInsert(Database.defaultLobbiesName, d.ToList());
-                }
-            }
+            database.Add(databaseDelta);
+            DBClass.DBInsertMultiple(Database.defaultLibrariesName, databaseDelta.libraryData.Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultUsersName, databaseDelta.userData.Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultPlayersName, databaseDelta.playerData.Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultArchivesName, databaseDelta.archiveData.Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultServersName, databaseDelta.serverData.Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultSessionsName, databaseDelta.sessionData.Cast<Data>().ToList());
+            DBClass.DBInsertMultiple(Database.defaultLobbiesName, databaseDelta.lobbyData.Cast<Data>().ToList());
+            databaseDelta.Clear();
+
         }
+        public void DumpDelta() => databaseDelta.Clear();
         #region Generatable Items
         private const int maxNumberOfLibraryUsagesOnStart = 3;
         private static readonly string[] causes = new string[] { "Suspicious activity", "Check up" };
@@ -256,6 +249,7 @@ namespace DataGenStatistics.classes
         #endregion
 
         #region Library
+        public List<int> GetRandomLibraryIds(int n) => GetRandomIds(database.libraryData.Cast<Data>().ToList(), n);
         public List<LibraryData> GenerateLibraries(int n)
         {
             List<LibraryData> libraries = new List<LibraryData>();
@@ -267,7 +261,7 @@ namespace DataGenStatistics.classes
             }
             return libraries;
         }
-        public LibraryData GenerateLibrary() {
+        private LibraryData GenerateLibrary() {
             LibraryData newLibrary = new LibraryData();
             int newId;
             if (databaseDelta.libraryData.Count == 0)
@@ -290,7 +284,7 @@ namespace DataGenStatistics.classes
         private static DateTime GenerateCreationDate() => GenerateDatetime();
         private static LibraryUsages GenerateRandomNumberOfLibraryUsages(int upTo)
         {
-            return GenerateLibraryUsagesInfo(r.Next(0, upTo + 1));
+            return GenerateLibraryUsagesInfo(rand.Next(0, upTo + 1));
         }
         private static LibraryUsages GenerateLibraryUsagesInfo(int n)
         {
@@ -308,28 +302,29 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateCause()
         {
-            return causes[r.Next(0, causes.Length)];
+            return causes[rand.Next(0, causes.Length)];
         }
         private static string GenerateResult()
         {
-            return results[r.Next(0, causes.Length)];
+            return results[rand.Next(0, causes.Length)];
         }
         #endregion
 
         #region User
+        public List<int> GetRandomUserIds(int n) => GetRandomIds(database.userData.Cast<Data>().ToList(), n);
         public List<UserData> GenerateUsers(int amount)
         {
             List<UserData> users = new List<UserData>();
             for (int i = 0; i < amount; i++) users.Add(GenerateUser(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
             return users;
         }
-        public List<UserData> GenerateUsers(int amount, int libraryID)
+        private List<UserData> GenerateUsers(int amount, int libraryID)
         {
             List<UserData> users = new List<UserData>();
             for (int i = 0; i < amount; i++) users.Add(GenerateUser(libraryID));
             return users;
         }
-        public UserData GenerateUser(int libraryID)
+        private UserData GenerateUser(int libraryID)
         {
             UserData newUser = new UserData();
             List<LibraryData> tb = new List<LibraryData>();
@@ -354,58 +349,59 @@ namespace DataGenStatistics.classes
         private static string GenerateUsername()
         {
             StringBuilder username = new StringBuilder();
-            username.Append(usernames[r.Next(0, usernames.Length)]);
+            username.Append(usernames[rand.Next(0, usernames.Length)]);
             username.Append((int)Math.Pow(DBClass.GetNextId(Database.defaultUsersName)*2, 3)+7);
             return username.ToString();
         }
         private static TechnicalSpecifications GenerateTechnicalSpecifications()
         {
             TechnicalSpecifications technicalSpecifications = new TechnicalSpecifications();
-            technicalSpecifications.OS = OSs[r.Next(0, OSs.Length)];
-            technicalSpecifications.RAM = RAMs[r.Next(0, RAMs.Length)];
-            technicalSpecifications.GPU = GPUs[r.Next(0, GPUs.Length)];
-            technicalSpecifications.CPU = CPUs[r.Next(0, CPUs.Length)];
-            technicalSpecifications.additionalInfo = additionalInfos[r.Next(0, additionalInfos.Length)];
+            technicalSpecifications.OS = OSs[rand.Next(0, OSs.Length)];
+            technicalSpecifications.RAM = RAMs[rand.Next(0, RAMs.Length)];
+            technicalSpecifications.GPU = GPUs[rand.Next(0, GPUs.Length)];
+            technicalSpecifications.CPU = CPUs[rand.Next(0, CPUs.Length)];
+            technicalSpecifications.additionalInfo = additionalInfos[rand.Next(0, additionalInfos.Length)];
             return technicalSpecifications;
         }
         private static string GenerateUserIP()
         {
             var data = new byte[4];
-            r.NextBytes(data);
+            rand.NextBytes(data);
             IPAddress ip = new IPAddress(data);
             return ip.ToString();
         }
         private static UserInfo GenerateUserInfo()
         {
             UserInfo newUserInfo = new UserInfo();
-            newUserInfo.location = userLocations[r.Next(0, userLocations.Length)];
-            newUserInfo.realName = usernames[r.Next(0, realNames.Length)];
-            newUserInfo.customURL = customURLs[r.Next(0, customURLs.Length)];
+            newUserInfo.location = userLocations[rand.Next(0, userLocations.Length)];
+            newUserInfo.realName = usernames[rand.Next(0, realNames.Length)];
+            newUserInfo.customURL = customURLs[rand.Next(0, customURLs.Length)];
             newUserInfo.achievments = new List<string>();
             for (int i = 0; i < maxNumberOfAchievmentsOnStart; i++)
-                newUserInfo.achievments.Add(achievments[r.Next(0, achievments.Length)]);
+                newUserInfo.achievments.Add(achievments[rand.Next(0, achievments.Length)]);
             return newUserInfo;
         }
         private static string GenerateUserStatus() 
         {
-            return statuses[r.Next(0, statuses.Length)];
+            return statuses[rand.Next(0, statuses.Length)];
         }
         #endregion
 
         #region Player
+        public List<int> GetRandomPlayerIds(int n) => GetRandomIds(database.playerData.Cast<Data>().ToList(), n);
         public List<PlayerData> GeneratePlayers(int amount)
         {
             List<PlayerData> players = new List<PlayerData>();
             for (int i = 0; i < amount; i++) players.Add(GeneratePlayer(RandomMaster<UserData>(database.userData, databaseDelta.userData).id));
             return players;
         }
-        public List<PlayerData> GeneratePlayers(int amount, int userID)
+        private List<PlayerData> GeneratePlayers(int amount, int userID)
         {
             List<PlayerData> players = new List<PlayerData>();
             for (int i = 0; i < amount; i++) players.Add(GeneratePlayer(userID));
             return players;
         }
-        public PlayerData GeneratePlayer(int userID)
+        private PlayerData GeneratePlayer(int userID)
         {
             PlayerData newPlayer = new PlayerData();
             int newId;
@@ -425,7 +421,7 @@ namespace DataGenStatistics.classes
         {
             
             StringBuilder name = new StringBuilder();
-            name.Append(playerNames[r.Next(0, playerNames.Length)]);
+            name.Append(playerNames[rand.Next(0, playerNames.Length)]);
             name.Append((int)Math.Pow(DBClass.GetNextId(Database.defaultUsersName) * 3, 2) + 31);
             return name.ToString();
         }
@@ -434,13 +430,13 @@ namespace DataGenStatistics.classes
             
             List<Item> inv = new List<Item>();
             List<string> itemsNotYetInInv = items.ToList();
-            for (int i = 0; i < r.Next(0, Math.Min(items.Length, maxNumberOfItemsOnStart)+1) & itemsNotYetInInv.Count > 0; i++)
+            for (int i = 0; i < rand.Next(0, Math.Min(items.Length, maxNumberOfItemsOnStart)+1) & itemsNotYetInInv.Count > 0; i++)
             {
                 Item item = new Item();
-                int index = r.Next(0, itemsNotYetInInv.Count);
+                int index = rand.Next(0, itemsNotYetInInv.Count);
                 item.name = itemsNotYetInInv[index];
                 itemsNotYetInInv.RemoveAt(index);
-                item.amount = r.Next(0, maxQuantityOfItemOnStart+1);
+                item.amount = rand.Next(0, maxQuantityOfItemOnStart+1);
                 inv.Add(item);
             }
             return inv;
@@ -452,46 +448,47 @@ namespace DataGenStatistics.classes
             stats.skills = new List<Skill>();
             List<string> unusedPerks = perks.ToList();
             List<string> unusedSkills = skills.ToList();
-            for (int i = 0; i < r.Next(0, Math.Min(perks.Length,maxNumberOfPerksOnStart) + 1); i++)
+            for (int i = 0; i < rand.Next(0, Math.Min(perks.Length,maxNumberOfPerksOnStart) + 1); i++)
             {
-                int index = r.Next(0, unusedPerks.Count);
+                int index = rand.Next(0, unusedPerks.Count);
                 stats.perks.Add(unusedPerks[index]);
                 unusedPerks.RemoveAt(index);
             }
             int totalLevel = 0;
-            for (int i = 0; i < r.Next(0, Math.Min(skills.Length, maxNumberOfSkillsOnStart) + 1); i++)
+            for (int i = 0; i < rand.Next(0, Math.Min(skills.Length, maxNumberOfSkillsOnStart) + 1); i++)
             {
-                int index = r.Next(0, unusedSkills.Count);
+                int index = rand.Next(0, unusedSkills.Count);
                 Skill skill = new Skill();
                 skill.name = unusedSkills[index];
                 unusedSkills.RemoveAt(index);
-                skill.level = r.Next(0, maxLevelOfSkillOnStart+1);
+                skill.level = rand.Next(0, maxLevelOfSkillOnStart+1);
                 totalLevel += skill.level;
                 stats.skills.Add(skill); 
             }
-            stats.totalExperience = r.Next(totalLevel * minExperienceForSkillLevel, maxLevelOfSkillOnStart * skills.Count() * minExperienceForSkillLevel + 1);
+            stats.totalExperience = rand.Next(totalLevel * minExperienceForSkillLevel, maxLevelOfSkillOnStart * skills.Count() * minExperienceForSkillLevel + 1);
             return stats;
         }
         private static string GenerateStatus()
         {
-            return statuses[r.Next(0, statuses.Length)];
+            return statuses[rand.Next(0, statuses.Length)];
         }
         #endregion
 
         #region Archive
+        public List<int> GetRandomArchiveIds(int n) => GetRandomIds(database.archiveData.Cast<Data>().ToList(), n);
         public List<ArchiveData> GenerateArchives(int amount)
         {
             List<ArchiveData> archives = new List<ArchiveData>();
             for (int i = 0; i < amount; i++) archives.Add(GenerateArchive(RandomMaster<LibraryData>(database.libraryData, databaseDelta.libraryData).id));
             return archives;
         }
-        public List<ArchiveData> GenerateArchives(int amount, int libraryID)
+        private List<ArchiveData> GenerateArchives(int amount, int libraryID)
         {
             List<ArchiveData> archives = new List<ArchiveData>();
             for (int i = 0; i < amount; i++) archives.Add(GenerateArchive(libraryID));
             return archives;
         }
-        public ArchiveData GenerateArchive(int libraryID)
+        private ArchiveData GenerateArchive(int libraryID)
         {
             ArchiveData newArchive = new ArchiveData();
             List<LibraryData> tb = new List<LibraryData>();
@@ -514,24 +511,25 @@ namespace DataGenStatistics.classes
         }
         private static string GenerateRegion()
         {
-            return regions[r.Next(0, regions.Length)];
+            return regions[rand.Next(0, regions.Length)];
         }
         #endregion
 
         #region Server
+        public List<int> GetRandomServerIds(int n) => GetRandomIds(database.serverData.Cast<Data>().ToList(), n);
         public List<ServerData> GenerateServers(int amount)
         {
             List<ServerData> servers = new List<ServerData>();
             for (int i = 0; i < amount; i++) servers.Add(GenerateServer(RandomMaster<ArchiveData>(database.archiveData, databaseDelta.archiveData).id));
             return servers;
         }
-        public List<ServerData> GenerateServers(int amount, int archiveID)
+        private List<ServerData> GenerateServers(int amount, int archiveID)
         {
             List<ServerData> servers = new List<ServerData>();
             for (int i = 0; i < amount; i++) servers.Add(GenerateServer(archiveID));
             return servers;
         }
-        public ServerData GenerateServer(int archiveID)
+        private ServerData GenerateServer(int archiveID)
         {
             ServerData newServer = new ServerData();
             int masterIndex; List<ArchiveData> masterHolder;
@@ -562,36 +560,37 @@ namespace DataGenStatistics.classes
         private static string GenerateLocation()
         {
             var data = new byte[4];
-            r.NextBytes(data);
+            rand.NextBytes(data);
             IPAddress ip = new IPAddress(data);
             return ip.ToString();
         }
         private static bool GenerateServerAvailability()
         {
             
-            return r.Next(0,2)==0;
+            return rand.Next(0,2)==0;
         }
         private static int GenerateServerCapacity()
         {
             
-            return r.Next(minServerCap, maxServerCap+1)*serverCapacityDenominator;
+            return rand.Next(minServerCap, maxServerCap+1)*serverCapacityDenominator;
         }
         #endregion
 
         #region Session
+        public List<int> GetRandomSessionIds(int n) => GetRandomIds(database.sessionData.Cast<Data>().ToList(), n);
         public List<SessionData> GenerateSessions(int amount)
         {
             List<SessionData> sessions = new List<SessionData>();
             for (int i = 0; i < amount; i++) sessions.Add(GenerateSession(RandomMaster<ServerData>(database.serverData, databaseDelta.serverData).id));
             return sessions;
         }
-        public List<SessionData> GenerateSessions(int amount, int serverID)
+        private List<SessionData> GenerateSessions(int amount, int serverID)
         {
             List<SessionData> sessions = new List<SessionData>();
             for (int i = 0; i < amount; i++) sessions.Add(GenerateSession(serverID));
             return sessions;
         }
-        public SessionData GenerateSession(int serverID)
+        private SessionData GenerateSession(int serverID)
         {
             SessionData newSession = new SessionData();
             List<ServerData> tb = new List<ServerData>();
@@ -617,7 +616,7 @@ namespace DataGenStatistics.classes
         {
             SessionInfo newSession = new SessionInfo();
             newSession.gameLog = new List<string>();
-            for (int i = 0; i < r.Next(0,maxLogVolume+1); i++) newSession.gameLog?.Add(GenerateGameLogQuery());
+            for (int i = 0; i < rand.Next(0,maxLogVolume+1); i++) newSession.gameLog?.Add(GenerateGameLogQuery());
             newSession.gameMap = GenerateGameMap();
             newSession.gameMode = GenerateGameMode();
             newSession.participatingLobbies = new List<int>();
@@ -626,34 +625,35 @@ namespace DataGenStatistics.classes
         private static string GenerateGameLogQuery()
         {
             
-            return possibleLogQuieries[r.Next(0, possibleLogQuieries.Length)];
+            return possibleLogQuieries[rand.Next(0, possibleLogQuieries.Length)];
         }
         private static string GenerateGameMap()
         {
             
-            return gameMaps[r.Next(0, gameMaps.Length)];
+            return gameMaps[rand.Next(0, gameMaps.Length)];
         }
         private static string GenerateGameMode()
         {
             
-            return gameModes[r.Next(0, gameModes.Length)];
+            return gameModes[rand.Next(0, gameModes.Length)];
         }
         #endregion
 
         #region Lobby
+        public List<int> GetRandomLobbyIds(int n) => GetRandomIds(database.lobbyData.Cast<Data>().ToList(), n);
         public List<LobbyData> GenerateLobbies(int amount)
         {
             List<LobbyData> lobbies = new List<LobbyData>();
             for (int i = 0; i < amount; i++) lobbies.Add(GenerateLobby(RandomMaster<SessionData>(database.sessionData, databaseDelta.sessionData).id));
             return lobbies;
         }
-        public List<LobbyData> GenerateLobbies(int amount, int sessionID)
+        private List<LobbyData> GenerateLobbies(int amount, int sessionID)
         {
             List<LobbyData> lobbies = new List<LobbyData>();
             for (int i = 0; i < amount; i++) lobbies.Add(GenerateLobby(sessionID));
             return lobbies;
         }
-        public LobbyData GenerateLobby(int sessionID)
+        private LobbyData GenerateLobby(int sessionID)
         {
             LobbyData newLobby = new LobbyData();
             List<SessionData> tb = new List<SessionData>();
@@ -672,32 +672,69 @@ namespace DataGenStatistics.classes
             master.sessionInfo.participatingLobbies.Add(newLobby.id);
             return newLobby;
         }
-        public List<int> RandomPlayerIds() {
+        private List<int> RandomPlayerIds() {
             List<int> someIds = new List<int>();
             List<PlayerData> players = database.playerData.Concat(databaseDelta.playerData).ToList();
             
-            for (int i = 0; i < Math.Min(maxPlayersInLobby, r.Next(0, players.Count)); i++)
-                someIds.Add(players[r.Next(0, players.Count)].id);
+            for (int i = 0; i < Math.Min(maxPlayersInLobby, rand.Next(0, players.Count)); i++)
+                someIds.Add(players[rand.Next(0, players.Count)].id);
             return someIds;
         }
         #endregion
 
-        #region General Generators
+        #region General Generators and Randomizers
+        public void GenerateAdditionalData(int libs = 0, int users = 0, int players = 0, int archives = 0, int servers = 0,
+                                            int sessions = 0, int lobbies = 0)
+        {
+            List<string> tableNames = DBClass.GetTableNames();
+            databaseDelta.libraryData.AddRange(GenerateLibraries(libs));
+            databaseDelta.userData.AddRange(GenerateUsers(users));
+            databaseDelta.playerData.AddRange(GeneratePlayers(players));
+            databaseDelta.archiveData.AddRange(GenerateArchives(archives));
+            databaseDelta.serverData.AddRange(GenerateServers(servers));
+            databaseDelta.sessionData.AddRange(GenerateSessions(sessions));
+            databaseDelta.lobbyData.AddRange(GenerateLobbies(lobbies));
+        }
         private static DateTime GenerateDatetime() => GenerateDatetime(DateTime.UnixEpoch, DateTime.Now);
         private static DateTime GenerateDatetime(DateTime startDate, DateTime endDate)
         {
             if ((startDate - DateTime.UnixEpoch).TotalSeconds < 0) startDate = DateTime.UnixEpoch;
             TimeSpan timeSpan = endDate - startDate;
-            TimeSpan newSpan = new TimeSpan(0, 0, r.Next(0, (int)(timeSpan.TotalSeconds + 1)));
+            TimeSpan newSpan = new TimeSpan(0, 0, rand.Next(0, (int)(timeSpan.TotalSeconds + 1)));
             return startDate + newSpan;
         }
         private static DateTime GenerateDatetimeAfter(DateTime dt) => GenerateDatetime(dt, DateTime.Now);
-
-        public T RandomMaster<T>(List<T> possibeMastersInDB, List<T> possibleMastersInDBDelta)
+        private T RandomMaster<T>(List<T> possibeMastersInDB, List<T> possibleMastersInDBDelta)
         {
             List<T> list = possibeMastersInDB.Concat(possibleMastersInDBDelta).ToList();
             
-            return list[r.Next(0, list.Count)];
+            return list[rand.Next(0, list.Count)];
+        }
+
+        private List<int> GetRandomIds(List<Data> data, int n)
+        {
+            List<int> ids = new();
+            int index;
+            for (int i = 0; i < n; i++)
+            {
+                index = rand.Next(0, data.Count);
+                ids.Add(data[index].Id);
+                data.RemoveAt(index);
+            }
+            return ids;
+        }
+        private static List<T> Shuffle<T>(List<T> list)
+        {
+            int length = list.Count;
+            while (length > 1)
+            {
+                length--;
+                int randomNumber = rand.Next(length + 1);
+                T value = list[randomNumber];
+                list[randomNumber] = list[length];
+                list[length] = value;
+            }
+            return list;
         }
         #endregion
 

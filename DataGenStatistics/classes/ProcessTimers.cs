@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace DataGenStatistics.classes
 {
@@ -12,32 +11,32 @@ namespace DataGenStatistics.classes
         private static Stopwatch masterWatch = Stopwatch.StartNew();
         public static void TimerTest()
         {
-            List<Delegate> delegates = new List<Delegate>()
+            List<Func<Task>> delegates = new List<Func<Task>>()
             {
-                () => DBClass.GetDataTableByName("library"),
-                () => DBClass.GetDataTableByName("user"),
-                () => DBClass.GetDataTableByName("player"),
-                () => DBClass.GetDataTableByName("archive"),
-                () => DBClass.GetDataTableByName("dedicated_server"),
-                () => DBClass.GetDataTableByName("session"),
-                () => DBClass.GetDataTableByName("lobby")
+                async () => { DBClass.GetDataTableByName("library"); },
+                async () => { DBClass.GetDataTableByName("user"); },
+                async () => { DBClass.GetDataTableByName("player"); },
+                async () => { DBClass.GetDataTableByName("archive"); },
+                async () => { DBClass.GetDataTableByName("dedicated_server"); },
+                async () => { DBClass.GetDataTableByName("session"); },
+                async () => { DBClass.GetDataTableByName("lobby"); }
             };
             foreach (long l in SeveralProcessesTimeInMilliseconds(delegates))
             {
                 Trace.WriteLine(l);
             }
         }
-        public static List<long> SeveralProcessesTimeInMilliseconds(List<Delegate> processes)
+        public static List<long> SeveralProcessesTimeInMilliseconds(List<Func<Task>> processes)
         {
             List<long> times = new();
-            foreach (Delegate d in processes)
+            foreach (Func<Task> d in processes)
                 times.Add(ProcessTimeInMilliseconds(d));
             return times;
         }
-        public static long ProcessTimeInMilliseconds(Delegate process)
+        public static long ProcessTimeInMilliseconds(Func<Task> process)
         {
             masterWatch.Restart();
-            process?.DynamicInvoke();
+            process.Invoke();
             masterWatch.Stop();
             return masterWatch.ElapsedMilliseconds;
         }

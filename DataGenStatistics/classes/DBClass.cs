@@ -2,11 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
-using System.Reflection;
 using System.Data.SqlClient;
 using System.Diagnostics;
 
@@ -15,6 +11,7 @@ namespace DataGenStatistics.classes
     public static class DBClass
     {
         private static string cn_String = "";
+        private static string dbName = "myDB.mdf";
 
         public static List<string> GetTableNames()
         {
@@ -39,7 +36,7 @@ namespace DataGenStatistics.classes
 
         public static SqlConnection GetDBConnection()
         {
-            cn_String = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" + Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\myDB.mdf; Integrated Security=True;"; 
+            cn_String = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" + Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\" + dbName + "; Integrated Security=True;";
             SqlConnection cn_connection = new SqlConnection(cn_String);
             if (cn_connection.State != ConnectionState.Open) cn_connection.Open();
             return cn_connection;
@@ -80,8 +77,8 @@ namespace DataGenStatistics.classes
         public static List<string> GetColumnNames(string tableName)
         {
             List<string> names = new List<string>();
-            DataTable dt = GetDataTable("SELECT  * FROM " + tableName);
-            foreach (DataColumn column in dt.Columns) 
+            DataTable dt = GetDataTable("SELECT  * FROM [" + tableName + "]");
+            foreach (DataColumn column in dt.Columns)
                 names.Add(column.ColumnName);
             return names;
         }
@@ -103,6 +100,11 @@ namespace DataGenStatistics.classes
             string sql_Add = "INSERT INTO \"" + tableName + "\" VALUES(" + values + ")";
             ExecuteSQL(sql_Add);
         }
+        public static void DBInsertMultiple(string tableName, List<Data> data)
+        {
+            foreach (Data d in data)
+                DBInsert(tableName, d.ToList());
+        }
         public static void DBRemove(string tableName, int id) => DBRemove(tableName, "ID=" + id);
         public static void DBRemove(string tableName, string where)
         {
@@ -111,29 +113,45 @@ namespace DataGenStatistics.classes
         }
         public static void DBUpdate(string tableName, List<string> columnNames, List<string> newValues, int id)
             => DBUpdate(tableName, columnNames, newValues, "ID=" + id);
-        public static void DBUpdate(string tableName, List<string> columnNames, List<string> newValues, string condition)
+        public static void DBUpdate(string tableName, List<string> columnNames, List<string> newValues, string where)
         {
             if (columnNames.Count != newValues.Count) throw new Exception("Number of columns and new values are not the same");
             StringBuilder values = new StringBuilder();
             for (int i = 1; i < columnNames.Count; i++)
             {
                 values.Append(columnNames[i]); values.Append(" = ");
-                Console.WriteLine(columnNames[i].ToString());
-                Console.WriteLine(newValues[i].ToString());
-                values.Append('\'');
-                values.Append(newValues[i]);
-                values.Append('\'');
-                if (i != columnNames.Count-1) values.Append(", ");
+                if (newValues[i].ToUpper() == "TRUE" || newValues[i].ToUpper() == "FALSE")
+                {
+                    values.Append("CAST('"); values.Append(newValues[i]); values.Append("' as bit)");
+                }
+                else
+                {
+                    values.Append("'"); values.Append(newValues[i]); values.Append("'");
+                }
+                if (i != columnNames.Count - 1) values.Append(", ");
             }
-            string sql_Update = "UPDATE " + tableName + " SET " + values + " WHERE " + condition;
+            string sql_Update = "UPDATE [" + tableName + "] SET " + values + " WHERE " + where;
             ExecuteSQL(sql_Update);
+        }
+        public static void DBUpdateMultiple(string tableName, List<Data> newValues, List<int> ids)
+        {
+            if (newValues.Count != ids.Count) throw new Exception("Number of ids doesn't match number of value rows");
+            if (newValues.Count > 0)
+            {
+                int valuesCount = newValues[0].ToList().Count;
+                for (int i = 0; i < newValues.Count; i++)
+                {
+                    List<string> columnNames = GetColumnNames(tableName).GetRange(1, valuesCount - 1);
+                    DBUpdate(tableName, columnNames, newValues[i].ToList().GetRange(1, valuesCount - 1), ids[i]);
+                }
+            }
         }
 
         public static DataTable GetDataTableByName(string tableName) => GetDataTable("SELECT * FROM [" + tableName + "]");
         public static void CreateNewTable(string name, List<string> columnNames, List<string> types, List<string> foreignKeysOrEmpty)
         {
             if (GetTableNames().Contains(name)) throw new Exception("Table with the name " + name + " already exists");
-            if (columnNames.Count != types.Count 
+            if (columnNames.Count != types.Count
                 || columnNames.Count != foreignKeysOrEmpty.Count) throw new Exception("Numbers of columns, types and keys are not synchronized");
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < columnNames.Count; i++)
@@ -142,19 +160,20 @@ namespace DataGenStatistics.classes
                 sb.Append(" ");
                 if (foreignKeysOrEmpty[i] != "")
                     sb.Append(types[i] + " FOREIGN KEY REFERENCES " + foreignKeysOrEmpty[i]);
-                else 
+                else
                     sb.Append(types[i]);
 
                 if (i != columnNames.Count - 1)
-                    sb.Append(", ");                
+                    sb.Append(", ");
             }
             for (int i = 0; i < foreignKeysOrEmpty.Count; i++)
             {
             }
             string sql_Add_New_Table = "CREATE TABLE [dbo].[" + name + "] ( " + sb.ToString() + ");";
-            Console.WriteLine(sql_Add_New_Table);
             ExecuteSQL(sql_Add_New_Table);
         }
-        
+        public static void ClearTable(string tableName) => ExecuteSQL("TRUNCATE TABLE [" + tableName +"]");
+        public static void ClearAllTables() => GetTableNames().ForEach(tableName => ClearTable(tableName));
+        public static void DropTable(string tableName) => ExecuteSQL("DROP TABLE [" + tableName + "]");
     }
 }

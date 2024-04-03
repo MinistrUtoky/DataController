@@ -15,6 +15,7 @@ namespace DataGenStatistics.classes
 {
     public interface Data
     {
+        public int Id { get; }
         public List<string> ToList();
         public Data ToData(List<string> data);
     }
@@ -35,6 +36,27 @@ namespace DataGenStatistics.classes
         public List<ServerData> serverData;
         public List<SessionData> sessionData;
         public List<LobbyData> lobbyData;
+        
+        public void Clear()
+        {
+            libraryData.Clear();
+            userData.Clear();
+            playerData.Clear();
+            archiveData.Clear();
+            serverData.Clear();
+            sessionData.Clear();
+            lobbyData.Clear();
+        }
+        public void Add(Database anotherDatabase)
+        {
+            libraryData.AddRange(anotherDatabase.libraryData);
+            userData.AddRange(anotherDatabase.userData);
+            playerData.AddRange(anotherDatabase.playerData);
+            archiveData.AddRange(anotherDatabase.archiveData);
+            serverData.AddRange(anotherDatabase.serverData);
+            sessionData.AddRange(anotherDatabase.sessionData);
+            lobbyData.AddRange(anotherDatabase.lobbyData);
+        }
     }
     #region Player
     public struct PlayerData : Data
@@ -46,6 +68,7 @@ namespace DataGenStatistics.classes
         public string playerStatus;
         public int userID;
 
+        public int Id => id;
         public Data ToData(List<string> data)
         {
             if (data.Count != 6) throw new Exception("Wrong data size format");
@@ -99,6 +122,7 @@ namespace DataGenStatistics.classes
         public string userStatus;
         public int libraryID;
 
+        public int Id => id;
         public Data ToData(List<string> data)
         {
             if (data.Count != 7) throw new Exception("Wrong data size format");
@@ -154,6 +178,7 @@ namespace DataGenStatistics.classes
         public DateTime creationDate;
         public List<int> playerIDs;
 
+        public int Id => id;
         public Data ToData(List<string> data)
         {
             if (data.Count != 5) throw new Exception("Wrong data size format");
@@ -181,6 +206,7 @@ namespace DataGenStatistics.classes
         public DateTime endDateTime;
         public SessionInfo sessionInfo;
 
+        public int Id => id;
         public Data ToData(List<string> data)
         {
             if (data.Count != 5) throw new Exception("Wrong data size format");
@@ -220,6 +246,7 @@ namespace DataGenStatistics.classes
         public bool serverAvailability;
         public int serverCapacity;
 
+        public int Id => id;
         public Data ToData(List<string> data)
         {
             if (data.Count != 6) throw new Exception("Wrong data size format");
@@ -250,6 +277,7 @@ namespace DataGenStatistics.classes
         public List<int> serverIDs;
         public string region;
 
+        public int Id => id;
         public Data ToData(List<string> data)
         {
             if (data.Count != 7) throw new Exception("Wrong data size format");
@@ -278,6 +306,7 @@ namespace DataGenStatistics.classes
         public ArchivesInfo archivesInfo { get; set; }
         public UsersInfo usersInfo { get; set; }
         public LibraryUsages libraryUsages { get; set; }
+        public int Id => id;
         public List<string> ToList()
         {
             return new List<string>() { id.ToString(), creationDate.ToString("yyyy-MM-dd HH:mm:ss"), JsonSerializer.Serialize(archivesInfo),
