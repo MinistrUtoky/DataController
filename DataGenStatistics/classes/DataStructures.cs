@@ -1,24 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json;
-using Newtonsoft.Json.Linq;
-using System.Xml.Linq;
 using System.Text.Json.Serialization;
-using System.Drawing;
-using ScottPlot;
-using System.Diagnostics;
 
 namespace DataGenStatistics.classes
 {
+    /// <summary>
+    /// Abstraction of a sandbox data tuple 
+    /// </summary>
     public interface Data
     {
         public int Id { get; }
+        /// <summary>
+        /// Data to list conversion for later DBClass processing
+        /// </summary>
         public List<string> ToList();
+        /// <summary>
+        /// List to data conversion for DBClass data extraction
+        /// </summary>
+        /// <param name="data">
+        /// List of values to be cast into Data
+        /// </param>
         public Data ToData(List<string> data);
     }
+    /// <summary>
+    /// Sandbox database
+    /// </summary>
     public struct Database
     {
         public const string defaultLibrariesName = "library";
@@ -36,7 +43,21 @@ namespace DataGenStatistics.classes
         public List<ServerData> serverData;
         public List<SessionData> sessionData;
         public List<LobbyData> lobbyData;
-        
+
+        public Database()
+        {
+            libraryData = new List<LibraryData>();
+            archiveData = new List<ArchiveData>();
+            serverData = new List<ServerData>();
+            sessionData = new List<SessionData>();
+            lobbyData = new List<LobbyData>();
+            userData = new List<UserData>();
+            playerData = new List<PlayerData>();
+        }
+
+        /// <summary>
+        /// Player stats bit representing value of a certain in-game skill
+        /// </summary>
         public void Clear()
         {
             libraryData.Clear();
@@ -47,6 +68,12 @@ namespace DataGenStatistics.classes
             sessionData.Clear();
             lobbyData.Clear();
         }
+        /// <summary>
+        /// Addition of another sandbox's values to this sandbox instance 
+        /// </summary>
+        /// <param name="anotherDatabase">
+        /// Database which values will be added
+        /// </param>
         public void Add(Database anotherDatabase)
         {
             libraryData.AddRange(anotherDatabase.libraryData);
@@ -59,6 +86,9 @@ namespace DataGenStatistics.classes
         }
     }
     #region Player
+    /// <summary>
+    /// Sandbox player data tuple
+    /// </summary>
     public struct PlayerData : Data
     {
         public int id;
@@ -87,6 +117,9 @@ namespace DataGenStatistics.classes
                                             JsonSerializer.Serialize(playerStats), playerStatus, userID.ToString() };
         }
     }
+    /// <summary>
+    /// Player data bit representing a certain item in player's inventory 
+    /// </summary>
     public struct Item
     {
         [JsonInclude]
@@ -94,6 +127,9 @@ namespace DataGenStatistics.classes
         [JsonInclude]
         public int amount;
     }
+    /// <summary>
+    /// Player data bit representing all player's in-game stats
+    /// </summary>
     public struct PlayerStats
     {
         [JsonInclude]
@@ -103,6 +139,9 @@ namespace DataGenStatistics.classes
         [JsonInclude]
         public long totalExperience;
     }
+    /// <summary>
+    /// Player stats bit representing value of a certain in-game skill
+    /// </summary>
     public struct Skill
     {
         [JsonInclude]
@@ -112,6 +151,9 @@ namespace DataGenStatistics.classes
     }
     #endregion
     #region User
+    /// <summary>
+    /// Sandbox user data tuple
+    /// </summary>
     public struct UserData : Data
     {
         public int id;
@@ -142,6 +184,9 @@ namespace DataGenStatistics.classes
                                             JsonSerializer.Serialize(userInfo), userStatus, libraryID.ToString() };
         }
     }
+    /// <summary>
+    /// User data bit representing tech specifications for user's device
+    /// </summary>
     public struct TechnicalSpecifications
     {
         [JsonInclude]
@@ -155,6 +200,9 @@ namespace DataGenStatistics.classes
         [JsonInclude]
         public string additionalInfo;
     }
+    /// <summary>
+    /// User data bit representing miscellanious user information
+    /// </summary>
     public struct UserInfo
     {
         [JsonInclude]
@@ -170,6 +218,9 @@ namespace DataGenStatistics.classes
     }
     #endregion
     #region Lobby
+    /// <summary>
+    /// Sandbox lobby data tuple
+    /// </summary>
     public struct LobbyData : Data
     {
         public int id;
@@ -198,6 +249,9 @@ namespace DataGenStatistics.classes
     }
     #endregion
     #region Session
+    /// <summary>
+    /// Sandbox session data tuple
+    /// </summary>
     public struct SessionData : Data
     {
         public int id;
@@ -224,6 +278,9 @@ namespace DataGenStatistics.classes
                                             endDateTime.ToString("yyyy-MM-dd HH:mm:ss"), JsonSerializer.Serialize(sessionInfo) };
         }
     }
+    /// <summary>
+    /// User data bit representing miscellanious session information
+    /// </summary>
     public struct SessionInfo
     {
         [JsonInclude]
@@ -237,6 +294,9 @@ namespace DataGenStatistics.classes
     }
     #endregion
     #region Server
+    /// <summary>
+    /// Sandbox dedicated_server data tuple
+    /// </summary>
     public struct ServerData : Data
     {
         public int id;
@@ -267,6 +327,9 @@ namespace DataGenStatistics.classes
     }
     #endregion
     #region Archive
+    /// <summary>
+    /// Sandbox archive data tuple
+    /// </summary>
     public struct ArchiveData : Data
     {
         public int id;
@@ -299,6 +362,9 @@ namespace DataGenStatistics.classes
     }
     #endregion
     #region Library
+    /// <summary>
+    /// Sandbox library data tuple
+    /// </summary>
     public struct LibraryData : Data
     {
         public int id;
@@ -323,21 +389,33 @@ namespace DataGenStatistics.classes
             return this;
         }
     }
+    /// <summary>
+    /// Library data bit representing list of data usage commentaries
+    /// </summary>
     public struct LibraryUsages
     {
         [JsonInclude]
         public List<LibraryUsage> libraryUsages { get; set; }
     }
+    /// <summary>
+    /// Library data bit representing list of related archives
+    /// </summary>
     public struct ArchivesInfo
     {
         [JsonInclude]
         public List<int> archiveIDs { get; set; }
     }
+    /// <summary>
+    /// Library data bit representing list of related users
+    /// </summary>
     public struct UsersInfo
     {
         [JsonInclude]
         public List<int> userIDs { get; set; }
     }
+    /// <summary>
+    /// Library usage commentary
+    /// </summary>
     public struct LibraryUsage
     {
         [JsonInclude]

@@ -24,10 +24,13 @@ namespace DataGenStatistics
          * Сделать так чтобы UPDATE и REMOVE имели генераторы снаружи
          * Предположительно все вышеперечисленные проблемы, как и странные рывки графиков времени предположительно возникают из-за асинхронности потоков
         */
+        /// <summary>
+        /// Constructor for the main window
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
-            DataGenerator.Instance.Init();
+            DatabaseSandbox.Instance.Init();
             ProcessTimers.TimerTest();
             PlotGenerators();
             //PlotSelectQueries();
@@ -52,13 +55,13 @@ namespace DataGenStatistics
                             lobbyDelegates = new ();
             foreach (int n in numberOfRows)
             {
-                libraryDelegates.Add(async () => DataGenerator.Instance.GenerateLibraries(n));
-                userDelegates.Add(async () => DataGenerator.Instance.GenerateUsers(n));
-                playerDelegates.Add(async () => DataGenerator.Instance.GeneratePlayers(n));
-                archiveDelegates.Add(async () => DataGenerator.Instance.GenerateArchives(n));
-                serverDelegates.Add(async () => DataGenerator.Instance.GenerateServers(n));
-                sessionDelegates.Add(async () => DataGenerator.Instance.GenerateSessions(n));
-                lobbyDelegates.Add(async () => DataGenerator.Instance.GenerateLobbies(n));
+                libraryDelegates.Add(async () => DatabaseSandbox.Instance.GenerateLibraries(n));
+                userDelegates.Add(async () => DatabaseSandbox.Instance.GenerateUsers(n));
+                playerDelegates.Add(async () => DatabaseSandbox.Instance.GeneratePlayers(n));
+                archiveDelegates.Add(async () => DatabaseSandbox.Instance.GenerateArchives(n));
+                serverDelegates.Add(async () => DatabaseSandbox.Instance.GenerateServers(n));
+                sessionDelegates.Add(async () => DatabaseSandbox.Instance.GenerateSessions(n));
+                lobbyDelegates.Add(async () => DatabaseSandbox.Instance.GenerateLobbies(n));
             }
             Dictionary<string, List<long>> results = new Dictionary<string, List<long>>
             {
@@ -143,30 +146,30 @@ namespace DataGenStatistics
                             sessionDelegates = new(),
                             lobbyDelegates = new();
             int totalDataAmount = numberOfRows.Sum();
-            DataGenerator.Instance.GenerateAdditionalData(totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount,
+            DatabaseSandbox.Instance.GenerateAdditionalData(totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount,
                                                           totalDataAmount, totalDataAmount, totalDataAmount);
             foreach (int n in numberOfRows)
             {
                 libraryDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(n, 0, 0, 0, 0, 0, 0);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(n, 0, 0, 0, 0, 0, 0);
                 });
                 userDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(0, n, 0, 0, 0, 0, 0);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(0, n, 0, 0, 0, 0, 0);
                 });
                 playerDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(0, 0, n, 0, 0, 0, 0);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(0, 0, n, 0, 0, 0, 0);
                 });
                 archiveDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(0, 0, 0, n, 0, 0, 0);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(0, 0, 0, n, 0, 0, 0);
                 });
                 serverDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(0, 0, 0, 0, n, 0, 0);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(0, 0, 0, 0, n, 0, 0);
                 });
                 sessionDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(0, 0, 0, 0, 0, n, 0);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(0, 0, 0, 0, 0, n, 0);
                 });
                 lobbyDelegates.Add(async () => {
-                    DataGenerator.Instance.PutDeltaPartIntoDB(0, 0, 0, 0, 0, 0, n);
+                    DatabaseSandbox.Instance.PutDeltaPartIntoDB(0, 0, 0, 0, 0, 0, n);
                 });
             }
             Dictionary<string, List<long>> results = new Dictionary<string, List<long>>
@@ -202,31 +205,31 @@ namespace DataGenStatistics
             foreach (int n in numberOfRows)
             {                
                 libraryDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomLibraryIds(n).ToList().ForEach(id => DBClass.DBRemove("library", id));
+                    DatabaseSandbox.Instance.GetRandomLibraryIds(n).ToList().ForEach(id => DBClass.DBRemove("library", id));
                 });
                 
                 userDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomUserIds(n).ToList().ForEach(id => DBClass.DBRemove("user", id));
+                    DatabaseSandbox.Instance.GetRandomUserIds(n).ToList().ForEach(id => DBClass.DBRemove("user", id));
                 });
                 
                 playerDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomPlayerIds(n).ToList().ForEach(id => DBClass.DBRemove("player", id));
+                    DatabaseSandbox.Instance.GetRandomPlayerIds(n).ToList().ForEach(id => DBClass.DBRemove("player", id));
                 });
                 
                 archiveDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomArchiveIds(n).ToList().ForEach(id => DBClass.DBRemove("archive", id));
+                    DatabaseSandbox.Instance.GetRandomArchiveIds(n).ToList().ForEach(id => DBClass.DBRemove("archive", id));
                 });
                 
                 serverDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomServerIds(n).ToList().ForEach(id => DBClass.DBRemove("dedicated_server", id));
+                    DatabaseSandbox.Instance.GetRandomServerIds(n).ToList().ForEach(id => DBClass.DBRemove("dedicated_server", id));
                 });
                 
                 sessionDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomSessionIds(n).ToList().ForEach(id => DBClass.DBRemove("session", id));
+                    DatabaseSandbox.Instance.GetRandomSessionIds(n).ToList().ForEach(id => DBClass.DBRemove("session", id));
                 });
                 
                 lobbyDelegates.Add(async () => {
-                    DataGenerator.Instance.GetRandomLobbyIds(n).ToList().ForEach(id => DBClass.DBRemove("lobby", id));
+                    DatabaseSandbox.Instance.GetRandomLobbyIds(n).ToList().ForEach(id => DBClass.DBRemove("lobby", id));
                 });
             }
             Dictionary<string, List<long>> results = new Dictionary<string, List<long>>
@@ -261,36 +264,36 @@ namespace DataGenStatistics
             List<int> ids = new();
             List<Data> newValues = new();
             int totalDataAmount = numberOfRows.Sum();
-            //DataGenerator.Instance.GenerateAdditionalData(totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount);
+            //DatabaseSandbox.Instance.GenerateAdditionalData(totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount, totalDataAmount);
             foreach (int n in numberOfRows)
             {
                 libraryDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("library", DataGenerator.Instance.GenerateLibraries(n).Cast<Data>().ToList(),
-                                            DataGenerator.Instance.GetRandomLibraryIds(n).ToList());
+                    DBClass.DBUpdateMultiple("library", DatabaseSandbox.Instance.GenerateLibraries(n).Cast<Data>().ToList(),
+                                            DatabaseSandbox.Instance.GetRandomLibraryIds(n).ToList());
                 });
                 userDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("user", DataGenerator.Instance.GenerateUsers(n).Cast<Data>().ToList(),
-                                            DataGenerator.Instance.GetRandomUserIds(n).ToList());
+                    DBClass.DBUpdateMultiple("user", DatabaseSandbox.Instance.GenerateUsers(n).Cast<Data>().ToList(),
+                                            DatabaseSandbox.Instance.GetRandomUserIds(n).ToList());
                 });
                 playerDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("player", DataGenerator.Instance.GeneratePlayers(n).Cast<Data>().ToList(),
-                        DataGenerator.Instance.GetRandomPlayerIds(n).ToList());
+                    DBClass.DBUpdateMultiple("player", DatabaseSandbox.Instance.GeneratePlayers(n).Cast<Data>().ToList(),
+                        DatabaseSandbox.Instance.GetRandomPlayerIds(n).ToList());
                 });
                 archiveDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("archive", DataGenerator.Instance.GenerateArchives(n).Cast<Data>().ToList(),
-                        DataGenerator.Instance.GetRandomArchiveIds(n).ToList());
+                    DBClass.DBUpdateMultiple("archive", DatabaseSandbox.Instance.GenerateArchives(n).Cast<Data>().ToList(),
+                        DatabaseSandbox.Instance.GetRandomArchiveIds(n).ToList());
                 });
                 serverDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("dedicated_server", DataGenerator.Instance.GenerateServers(n).Cast<Data>().ToList(),
-                        DataGenerator.Instance.GetRandomServerIds(n).ToList());
+                    DBClass.DBUpdateMultiple("dedicated_server", DatabaseSandbox.Instance.GenerateServers(n).Cast<Data>().ToList(),
+                        DatabaseSandbox.Instance.GetRandomServerIds(n).ToList());
                 });
                 sessionDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("session", DataGenerator.Instance.GenerateSessions(n).Cast<Data>().ToList(),
-                        DataGenerator.Instance.GetRandomSessionIds(n).ToList());
+                    DBClass.DBUpdateMultiple("session", DatabaseSandbox.Instance.GenerateSessions(n).Cast<Data>().ToList(),
+                        DatabaseSandbox.Instance.GetRandomSessionIds(n).ToList());
                 });
                 lobbyDelegates.Add(async () => {
-                    DBClass.DBUpdateMultiple("lobby", DataGenerator.Instance.GenerateLobbies(n).Cast<Data>().ToList(),
-                        DataGenerator.Instance.GetRandomLobbyIds(n).ToList());
+                    DBClass.DBUpdateMultiple("lobby", DatabaseSandbox.Instance.GenerateLobbies(n).Cast<Data>().ToList(),
+                        DatabaseSandbox.Instance.GetRandomLobbyIds(n).ToList());
                 });
             }
             Dictionary<string, List<long>> results = new Dictionary<string, List<long>>
@@ -303,7 +306,7 @@ namespace DataGenStatistics
                 {"session", ProcessTimers.SeveralProcessesTimeInMilliseconds(sessionDelegates) },
                 {"lobby", ProcessTimers.SeveralProcessesTimeInMilliseconds(lobbyDelegates) }
             };
-            //DataGenerator.Instance.DumpDelta();
+            //DatabaseSandbox.Instance.DumpDelta();
             Plot(UpdateQueryTimings, "Time required for update",
                  numberOfRows, results, "update_timings.png");
         }
@@ -326,8 +329,6 @@ namespace DataGenStatistics
         /// <param name="saveFile">
         /// File to save plot image to
         /// </param>
-        /// <returns>
-        /// </returns>
         private void Plot(WpfPlot plot, string plotName,
                           int[] numberOfRows, Dictionary<string, List<long>> results,
                           string saveFile)

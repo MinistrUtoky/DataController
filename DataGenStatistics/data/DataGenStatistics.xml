@@ -1,0 +1,1066 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DataGenStatistics</name>
+    </assembly>
+    <members>
+        <member name="T:DataGenStatistics.App">
+            <summary>
+            Interaction logic for App.xaml
+            </summary>
+            <summary>
+            App
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.App.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.App.Main">
+            <summary>
+            Application Entry Point.
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.DatabaseSandbox">
+            <summary>
+            The database sandbox 
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.Init">
+            <summary>
+            Initiating the sandbox
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.SeedDatabaseToMSQLServer">
+            <summary>
+            Creating tables in database matching the sandbox
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.DropAll">
+            <summary>
+            Deleting all known tables from database
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.FetchAllTablesFromSQL">
+            <summary>
+            Initiation of a database to data sandbox data fetch for all tables
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.FetchDataFromTable(System.String)">
+            <summary>
+            Initiation of a database to data sandbox data fetch for a specified table
+            </summary>
+            <param name="tableName">
+            Name of the table to fetch data from
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.FetchDataOfType``1(System.String,System.Collections.Generic.List{``0})">
+            <summary>
+            Initiation of a database to data sandbox data fetch from a specified table to a specified sandbox type
+            </summary>
+            <param name="tableName">
+            Name of the table to fetch data from
+            </param>
+            <param name="whereDataIsGoing">
+            Specified sandbox list (preferrably one within the existing sandbox)
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.PutDeltaIntoDB">
+            <summary>
+            Puts all newly created and added to databaseDelta values into the real database
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateAdditionalData(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Generates and puts specified numbers of new data tuples into the sandbox
+            </summary>
+            <param name="libs">
+            Number of libraries to generate
+            </param>
+            <param name="users">
+            Number of users to generate
+            </param>
+            <param name="players">
+            Number of players to generate
+            </param>
+            <param name="archives">
+            Number of archives to generate
+            </param>
+            <param name="servers">
+            Number of servers to generate
+            </param>
+            <param name="sessions">
+            Number of sessions to generate
+            </param>
+            <param name="lobbies">
+            Number of lobbies to generate
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.PutDeltaPartIntoDB(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Puts specified numbers of sandbox data tuples into the real database
+            </summary>
+            <param name="libs">
+            Number of libraries to put into the database
+            </param>
+            <param name="users">
+            Number of users to put into the database
+            </param>
+            <param name="players">
+            Number of players to put into the database
+            </param>
+            <param name="archives">
+            Number of archives to put into the database
+            </param>
+            <param name="servers">
+            Number of servers to put into the database
+            </param>
+            <param name="sessions">
+            Number of sessions to put into the database
+            </param>
+            <param name="lobbies">
+            Number of lobbies to put into the database
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomLibraryIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random library ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of library ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateLibraries(System.Int32)">
+            <summary>
+            Generation of several sandbox library tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox library tuples to generate
+            </param>
+            <returns>
+            List of library tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateLibrary">
+            <summary>
+            Generation of a new sandbox library tuple structure
+            </summary>
+            <returns>
+            New sandbox library tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomUserIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random user ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of user ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateUsers(System.Int32)">
+            <summary>
+            Generation of several sandbox user tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox user tuples to generate
+            </param>
+            <returns>
+            List of user tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateUser(System.Int32)">
+            <summary>
+            Generation of a new sandbox user tuple structure
+            </summary>
+            <param name="libraryID">
+            This user's foreign key master library's id in database's hierarchy  
+            </param>
+            <returns>
+            New sandbox user tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomPlayerIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random player ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of player ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GeneratePlayers(System.Int32)">
+            <summary>
+            Generation of several sandbox player tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox player tuples to generate
+            </param>
+            <returns>
+            List of player tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GeneratePlayer(System.Int32)">
+            <summary>
+            Generation of a new sandbox player tuple structure
+            </summary>
+            <param name="userID">
+            This player's foreign key master user's id in database's hierarchy  
+            </param>
+            <returns>
+            New sandbox player tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomArchiveIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random archive ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of archive ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateArchives(System.Int32)">
+            <summary>
+            Generation of several sandbox archive tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox archive tuples to generate
+            </param>
+            <returns>
+            List of archive tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateArchive(System.Int32)">
+            <summary>
+            Generation of a new sandbox archive tuple structure
+            </summary>
+            <param name="libraryID">
+            This archive's foreign key master library's id in database's hierarchy 
+            </param>
+            <returns>
+            New sandbox archive tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomServerIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random server ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of server ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateServers(System.Int32)">
+            <summary>
+            Generation of several sandbox server tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox server tuples to generate
+            </param>
+            <returns>
+            List of server tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateServer(System.Int32)">
+            <summary>
+            Generation of a new sandbox server tuple structure
+            </summary>
+            <param name="archiveID">
+            This server's foreign key master archive's id in database's hierarchy 
+            </param>
+            <returns>
+            New sandbox server tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomSessionIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random session ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of session ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateSessions(System.Int32)">
+            <summary>
+            Generation of several sandbox session tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox session tuples to generate
+            </param>
+            <returns>
+            List of session tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateSession(System.Int32)">
+            <summary>
+            Generation of a new sandbox session tuple structure
+            </summary>
+            <param name="serverID">
+            This session's foreign key master server's id in database's hierarchy 
+            </param>
+            <returns>
+            New sandbox session tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomLobbyIds(System.Int32)">
+            <summary>
+            Selection of a specified number of random lobby ids 
+            </summary>
+            <param name="n">
+            Number of ids to select
+            </param>
+            <returns>
+            List of lobby ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateLobbies(System.Int32)">
+            <summary>
+            Generation of several sandbox lobby tuple structures
+            </summary>
+            <param name="amount">
+            Number of sandbox lobby tuples to generate
+            </param>
+            <returns>
+            List of lobby tuple structures
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.GenerateLobby(System.Int32)">
+            <summary>
+            Generation of a new sandbox lobby tuple structure
+            </summary>
+            <param name="sessionID">
+            This lobby's foreign key master session's id in database's hierarchy 
+            </param>
+            <returns>
+            New sandbox lobby tuple structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.RandomPlayerIds">
+            <summary>
+            Selection of a random number of random player id's to include into lobby's player list
+            </summary>
+            <returns>
+            List of player ids
+            </returns>
+        </member>
+        <member name="T:DataGenStatistics.classes.DataGenerator">
+            <summary>
+            The data values generator for a sandbox
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateCreationDate">
+            <summary>
+            Generation of a random creation date for library data
+            </summary>
+            <returns>
+            Any DateTime from Unix Epoch up till now
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateRandomNumberOfLibraryUsages(System.Int32)">
+            <summary>
+            Generates no more than a specified amount of library usages
+            </summary>
+            <returns>
+            New LibraryUsages structure containing a list of library usages
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateLibraryUsagesInfo(System.Int32)">
+            <summary>
+            Generates specified amount of library usages
+            </summary>
+            <param name="n">
+            Number of library usages to generate
+            </param>
+            <returns>
+            New LibraryUsages structure containing a list of library usages
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateLibraryUsage">
+            <summary>
+            Generates random library usage
+            </summary>
+            <returns>
+            New LibraryUsage structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateCause">
+            <summary>
+            Selects random cause for a library usage
+            </summary>
+            <returns>
+            Selected usage cause string
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateResult">
+            <summary>
+            Selects random result of a library usage
+            </summary>
+            <returns>
+            Selected usage result string
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateUsername">
+            <summary>
+            Generates random user nickname
+            </summary>
+            <returns>
+            Selected nickname with random numerical ending 
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateTechnicalSpecifications">
+            <summary>
+            Generates random user's device's technical specifications 
+            </summary>
+            <returns>
+            New TechnicalSpecifications structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateUserIP">
+            <summary>
+            Generates random user IP
+            </summary>
+            <returns>
+            IP address string
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateUserInfo">
+            <summary>
+            Generates random user info 
+            </summary>
+            <returns>
+            New UserInfo structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateUserStatus">
+            <summary>
+            Selects random user status from preset array of statuses
+            </summary>
+            <returns>
+            Status string (standard: banned, active, suspended)
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GeneratePlayerNickname">
+            <summary>
+            Generates random player nickname
+            </summary>
+            <returns>
+            Selected nickname with random numerical ending 
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateInventory">
+            <summary>
+            Generates random new player inventory contents
+            </summary>
+            <returns>
+            List of items names and quantities
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateStats">
+            <summary>
+            Generates random new set of stats for a player from preset arrays of parameters
+            </summary>
+            <returns>
+            New PlayerStats structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateStatus">
+            <summary>
+            Selects random player status from preset array of statuses
+            </summary>
+            <returns>
+            Status string (standard: banned, active, suspended)
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateRegion">
+            <summary>
+            Selects random world region from preset array of regions
+            </summary>
+            <returns>
+            Region abbr string
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateLocation">
+            <summary>
+            Generates random location IP
+            </summary>
+            <returns>
+            IP address string
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateServerAvailability">
+            <summary>
+            Randomly chooses if the server is avaliable as of now
+            </summary>
+            <returns>
+            Server avaliability boolean
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateServerCapacity">
+            <summary>
+            Generates random serever capacity within preset capacity limits
+            </summary>
+            <returns>
+            Server capacity integer
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateSessionInfo">
+            <summary>
+            Generates random new session info all related data
+            </summary>
+            <returns>
+            Generated SessionInfo structure
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateGameLogQuery">
+            <summary>
+            Selects random game log query from possible game log queries
+            </summary>
+            <returns>
+            Game log query
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateGameMap">
+            <summary>
+            Selects random game map name from possible game maps
+            </summary>
+            <returns>
+            Game map name
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateGameMode">
+            <summary>
+            Selects random game mode from possible game modes
+            </summary>
+            <returns>
+            Game mode
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateDatetime">
+            <summary>
+            Generation of a random datetime
+            </summary>
+            <returns>
+            Any DateTime from Unix Epoch up till the present date and time 
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateDatetime(System.DateTime,System.DateTime)">
+            <summary>
+            Generation of a random datetime within set time period
+            </summary>
+            <param name="startDate">
+            Earliest datetime possible to be generated
+            </param>
+            <param name="endDate">
+            Latest datetime possible to be generated
+            </param> 
+            <returns>
+            DateTime between startDate and endDate
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GenerateDatetimeAfter(System.DateTime)">
+            <summary>
+            Generation of a random datetime after set datetime and before the present
+            </summary>
+            <param name="dt">
+            Earliest datetime possible to be generated
+            </param>
+            <returns>
+            DateTime after dt and earlier than present
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.RandomMaster``1(System.Collections.Generic.List{``0},System.Collections.Generic.List{``0})">
+            <summary>
+            Selection of a random "master" object from two lists of a specified type.
+            </summary>
+            <param name="possibeMastersInDB">
+            First list to select master from
+            </param>
+            <param name="possibleMastersInDBDelta">
+            Second list to select master from
+            </param>
+            <returns>
+            Master object of specific type 
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.GetRandomIds(System.Collections.Generic.List{DataGenStatistics.classes.Data},System.Int32)">
+            <summary>
+            Selection of a batch of random ids from the list of data.
+            </summary>
+            <param name="data">
+            List of Data structures to select master from
+            </param>
+            <param name="n">
+            How many ids to select
+            </param>
+            <returns>
+            List of selected ids
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DataGenerator.Shuffle``1(System.Collections.Generic.List{``0})">
+            <summary>
+            List shuffler
+            </summary>
+            <param name="list">
+            List to shuffle
+            </param>
+            <returns>
+            Shuffled list
+            </returns>
+        </member>
+        <member name="T:DataGenStatistics.classes.Data">
+            <summary>
+            Abstraction of a sandbox data tuple 
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Data.ToList">
+            <summary>
+            Data to list conversion for later DBClass processing
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Data.ToData(System.Collections.Generic.List{System.String})">
+            <summary>
+            List to data conversion for DBClass data extraction
+            </summary>
+            <param name="data">
+            List of values to be cast into Data
+            </param>
+        </member>
+        <member name="T:DataGenStatistics.classes.Database">
+            <summary>
+            Sandbox database
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Database.Clear">
+            <summary>
+            Player stats bit representing value of a certain in-game skill
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Database.Add(DataGenStatistics.classes.Database)">
+            <summary>
+            Addition of another sandbox's values to this sandbox instance 
+            </summary>
+            <param name="anotherDatabase">
+            Database which values will be added
+            </param>
+        </member>
+        <member name="T:DataGenStatistics.classes.PlayerData">
+            <summary>
+            Sandbox player data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.Item">
+            <summary>
+            Player data bit representing a certain item in player's inventory 
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.PlayerStats">
+            <summary>
+            Player data bit representing all player's in-game stats
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.Skill">
+            <summary>
+            Player stats bit representing value of a certain in-game skill
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.UserData">
+            <summary>
+            Sandbox user data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.TechnicalSpecifications">
+            <summary>
+            User data bit representing tech specifications for user's device
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.UserInfo">
+            <summary>
+            User data bit representing miscellanious user information
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.LobbyData">
+            <summary>
+            Sandbox lobby data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.SessionData">
+            <summary>
+            Sandbox session data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.SessionInfo">
+            <summary>
+            User data bit representing miscellanious session information
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.ServerData">
+            <summary>
+            Sandbox dedicated_server data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.ArchiveData">
+            <summary>
+            Sandbox archive data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.LibraryData">
+            <summary>
+            Sandbox library data tuple
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.LibraryUsages">
+            <summary>
+            Library data bit representing list of data usage commentaries
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.ArchivesInfo">
+            <summary>
+            Library data bit representing list of related archives
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.UsersInfo">
+            <summary>
+            Library data bit representing list of related users
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.LibraryUsage">
+            <summary>
+            Library usage commentary
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.classes.DBClass">
+            <summary>
+            The instance that is used to directly manage the database
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetTableNames">
+            <summary>
+            Extracting table names from db
+            </summary>
+            <returns>
+            List of table name strings 
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetDataTables">
+            <summary>
+            Extracting table objects from db
+            </summary>
+            <returns>
+            List of DataTable objects
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetDBConnection">
+            <summary>
+            Getting connection to database 
+            </summary>
+            <returns>
+            Database connection object
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetDataTable(System.String)">
+            <summary>
+            Getting data table with SELECT statement
+            </summary>
+            <param name="SQL_Text">
+            SELECT statement to get table or table part 
+            </param>
+            <returns>
+            DataTable object retrieved by SELECT statement
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.ExecuteSQL(System.String)">
+            <summary>
+            Execution of anys SQL command without anything in return
+            </summary>
+            <param name="SQL_Text">
+            SQL command text
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.CloseDBConnection">
+            <summary>
+            Forceful disruption of the database connection
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetNextId(System.String)">
+            <summary>
+            Getting the next increment of the table's id 
+            </summary>
+            <param name="tableName">
+            Name of the table to get the next id from
+            </param>
+            <returns>
+            Next id for the exact table
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetColumnNames(System.String)">
+            <summary>
+            Retrieving names of the table's columns
+            </summary>
+            <param name="tableName">
+            Name of the table to get column names from
+            </param>
+            <returns>
+            List of column name strings
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBInsert(System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Insertion of an element to the table with specified content
+            </summary>
+            <param name="tableName">
+            Name of the table to insert into
+            </param>
+            <param name="new_element">
+            List of insertion element values fitting the mask of all non-primary colimns
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBInsertMultiple(System.String,System.Collections.Generic.List{DataGenStatistics.classes.Data})">
+            <summary>
+            Insertion of multiple elements to the table with set content
+            </summary>
+            <param name="tableName">
+            Name of the table to insert into
+            </param>
+            <param name="data">
+            List of data structures convertable to lists of string insertion contents 
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBRemove(System.String,System.Int32)">
+            <summary>
+            Removal of a tuple with specified id
+            </summary>
+            <param name="tableName">
+            Name of the table to remove from
+            </param>
+            <param name="id">
+            Id of a tuple to remove
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBRemove(System.String,System.String)">
+            <summary>
+            Removal of tuples by specified condition
+            </summary>
+            <param name="tableName">
+            Name of the table to remove from
+            </param>
+            <param name="where">
+            Condition for removal
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBUpdate(System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.Int32)">
+            <summary>
+            Update of specified columns with certain values of a tuple with set id 
+            </summary>
+            <param name="tableName">
+            Name of the table to update
+            </param>
+            <param name="columnNames">
+            Names of columns to update
+            </param>
+            <param name="newValues">
+            Values to update the specified tuple's columns with
+            </param>
+            <param name="id">
+            Id of a tuple to update
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBUpdate(System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.String)">
+            <summary>
+            Update of specified columns with certain values of tuples by set condition
+            </summary>
+            <param name="tableName">
+            Name of the table to update
+            </param>
+            <param name="columnNames">
+            Names of columns to update
+            </param>
+            <param name="newValues">
+            Values to update the specified tuples' columns with
+            </param>
+            <param name="where">
+            Update condition
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DBUpdateMultiple(System.String,System.Collections.Generic.List{DataGenStatistics.classes.Data},System.Collections.Generic.List{System.Int32})">
+            <summary>
+            Update of multiple identified tuples with specified data.
+            Number and sequence of ids must be exactly preset to the number and sequence of data.  
+            </summary>
+            <param name="tableName">
+            Name of the table to update
+            </param>
+            <param name="newValues">
+            List of structures convertable to values to update the identified tuples' columns with
+            </param>
+            <param name="ids">
+            Identifiers of the tuples to update 
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetDataTableByName(System.String)">
+            <summary>
+            Getting the whole table by it's name
+            </summary>
+            <param name="tableName">
+            Name of the table to get
+            </param>
+            <returns>
+            DataTable object that mirrors the specified table
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.CreateNewTable(System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String})">
+            <summary>
+            Creating a new table in the database
+            </summary>
+            <param name="name">
+            Name of a new table
+            </param>
+            <param name="columnNames">
+            Names for the new table's columns
+            </param>
+            <param name="types">
+            Types of the new table's columns 
+            (types are assigned in the same sequence as column names)
+            </param>
+            <param name="foreignKeysOrEmpty">
+            List of empty strings or string table references matching "[*tableName*].*columnName*"
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.ClearTable(System.String)">
+            <summary>
+            Truncating the specific table
+            </summary>
+            <param name="tableName">
+            Name of a table to truncate
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.ClearAllTables">
+            <summary>
+            Truncating all the tables in database
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DropTable(System.String)">
+            <summary>
+            Deleting the specific table
+            </summary>
+            <param name="tableName">
+            Name of a table to drop
+            </param>
+        </member>
+        <member name="T:DataGenStatistics.classes.ProcessTimers">
+            <summary>
+            Timers for processes and related utilities
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.ProcessTimers.TimerTest">
+            <summary>
+            Testing process timers by extracting database's table names
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.ProcessTimers.SeveralProcessesTimeInMilliseconds(System.Collections.Generic.List{System.Func{System.Threading.Tasks.Task}})">
+            <summary>
+            Calculating time for several processes
+            </summary>
+            <param name="processes">
+            Processes to calculate time for
+            </param>
+            <returns>
+            List of milliseconds elapsed for several processes
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.ProcessTimers.ProcessTimeInMilliseconds(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Calculating time for a process
+            </summary>
+            <param name="process">
+            Process to calculate time for
+            </param>
+            <returns>
+            Time in milliseconds spent for a process to complete
+            </returns>
+        </member>
+        <member name="T:DataGenStatistics.MainWindow">
+            <summary>
+            Interaction logic for MainWindow.xaml
+            </summary>
+            <summary>
+            MainWindow
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.#ctor">
+            <summary>
+            Constructor for the main window
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.PlotGenerators">
+            <summary>
+            Calculates generation time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.PlotSelectQueries">
+            <summary>
+            Calculates selection time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.PlotInsertQueries">
+            <summary>
+            Calculates insertion time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.PlotRemoveQueries">
+            <summary>
+            Calculates removal time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.PlotUpdateQueries">
+            <summary>
+            Calculates update time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.Plot(ScottPlot.WPF.WpfPlot,System.String,System.Int32[],System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.List{System.Int64}},System.String)">
+            <summary>
+            General plotting method
+            </summary>
+            <param name="plot">
+            WpfPlot to draw on
+            </param>
+            <param name="plotName">
+            Title of the plot shown on top of WpfPlot widget
+            </param>
+            <param name="numberOfRows">
+            Array of row counts for each test sequence
+            </param>
+            <param name="results">
+            Test sequences results
+            </param> 
+            <param name="saveFile">
+            File to save plot image to
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.MainWindow.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+    </members>
+</doc>
