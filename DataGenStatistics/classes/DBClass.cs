@@ -44,7 +44,7 @@ namespace DataGenStatistics.classes
             using (SqlConnection con = GetDBConnection())
             {
                 foreach (DataRow row in con.GetSchema("Tables").Rows)
-                    tables.Add(GetDataTable((string)row["TABLE_NAME"]));
+                    tables.Add(GetDataTable("SELECT  * FROM [" + (string)row["TABLE_NAME"] + "]"));
                 return tables;
             }
         }
