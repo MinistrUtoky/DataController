@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Windows.Controls;
+using DataGenStatistics.classes;
 
-namespace DataGenStatistics.classes
+namespace DataGenStatistics.investigation
 {
     /// <summary>
     /// Timers for processes and related utilities

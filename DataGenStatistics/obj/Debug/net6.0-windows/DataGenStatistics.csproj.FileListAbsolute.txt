@@ -2,7 +2,6 @@ C:\Users\Viqtop\source\repos\DataGenStatistics\DataGenStatistics\obj\Debug\net6.
 C:\Users\Viqtop\source\repos\DataGenStatistics\DataGenStatistics\obj\Debug\net6.0-windows\App.g.cs
 C:\Users\Viqtop\source\repos\DataGenStatistics\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics_MarkupCompile.cache
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.csproj.AssemblyReference.cache
-C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\MainWindow.g.cs
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\App.g.cs
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics_MarkupCompile.cache
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics_MarkupCompile.lref
@@ -45,7 +44,6 @@ C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\bin\Debug\net6.0-w
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\bin\Debug\net6.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\bin\Debug\net6.0-windows\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\bin\Debug\net6.0-windows\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll
-C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\MainWindow.baml
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.g.resources
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.AssemblyInfoInputs.cache
@@ -114,3 +112,6 @@ C:\Users\Viqtop\source\repos\DataController-main\DataGenStatistics\obj\Debug\net
 C:\Users\Viqtop\source\repos\DataController-main\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.pdb
 C:\Users\Viqtop\source\repos\DataController-main\DataGenStatistics\obj\Debug\net6.0-windows\DataGenStatistics.genruntimeconfig.cache
 C:\Users\Viqtop\source\repos\DataController-main\DataGenStatistics\obj\Debug\net6.0-windows\ref\DataGenStatistics.dll
+C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\bin\Debug\net6.0-windows\DataGenStatistics.xml
+C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\MainWindow.g.cs
+C:\Users\Viqtop\source\repos\DataController\DataGenStatistics\obj\Debug\net6.0-windows\MainWindow.baml

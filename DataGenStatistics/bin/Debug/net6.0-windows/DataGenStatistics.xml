@@ -22,6 +22,68 @@
             Application Entry Point.
             </summary>
         </member>
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotGenerators(System.Int32[])">
+            <summary>
+            Calculates generation time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotSelectQueries(System.Int32[])">
+            <summary>
+            Calculates selection time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotInsertQueries(System.Int32[])">
+            <summary>
+            Calculates insertion time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotRemoveQueries(System.Int32[])">
+            <summary>
+            Calculates removal time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotUpdateQueries(System.Int32[])">
+            <summary>
+            Calculates update time result data for globally given numbers of rows
+            Plots with Plot()
+            </summary>
+        </member>
+        <member name="T:DataGenStatistics.investigation.ProcessTimers">
+            <summary>
+            Timers for processes and related utilities
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.investigation.ProcessTimers.TimerTest">
+            <summary>
+            Testing process timers by extracting database's table names
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.investigation.ProcessTimers.SeveralProcessesTimeInMilliseconds(System.Collections.Generic.List{System.Func{System.Threading.Tasks.Task}})">
+            <summary>
+            Calculating time for several processes
+            </summary>
+            <param name="processes">
+            Processes to calculate time for
+            </param>
+            <returns>
+            List of milliseconds elapsed for several processes
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.investigation.ProcessTimers.ProcessTimeInMilliseconds(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Calculating time for a process
+            </summary>
+            <param name="process">
+            Process to calculate time for
+            </param>
+            <returns>
+            Time in milliseconds spent for a process to complete
+            </returns>
+        </member>
         <member name="T:DataGenStatistics.classes.DatabaseSandbox">
             <summary>
             The database sandbox 
@@ -962,38 +1024,6 @@
             Name of a table to drop
             </param>
         </member>
-        <member name="T:DataGenStatistics.classes.ProcessTimers">
-            <summary>
-            Timers for processes and related utilities
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.classes.ProcessTimers.TimerTest">
-            <summary>
-            Testing process timers by extracting database's table names
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.classes.ProcessTimers.SeveralProcessesTimeInMilliseconds(System.Collections.Generic.List{System.Func{System.Threading.Tasks.Task}})">
-            <summary>
-            Calculating time for several processes
-            </summary>
-            <param name="processes">
-            Processes to calculate time for
-            </param>
-            <returns>
-            List of milliseconds elapsed for several processes
-            </returns>
-        </member>
-        <member name="M:DataGenStatistics.classes.ProcessTimers.ProcessTimeInMilliseconds(System.Func{System.Threading.Tasks.Task})">
-            <summary>
-            Calculating time for a process
-            </summary>
-            <param name="process">
-            Process to calculate time for
-            </param>
-            <returns>
-            Time in milliseconds spent for a process to complete
-            </returns>
-        </member>
         <member name="T:DataGenStatistics.MainWindow">
             <summary>
             Interaction logic for MainWindow.xaml
@@ -1005,36 +1035,6 @@
         <member name="M:DataGenStatistics.MainWindow.#ctor">
             <summary>
             Constructor for the main window
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.MainWindow.PlotGenerators">
-            <summary>
-            Calculates generation time result data for globally given numbers of rows
-            Plots with Plot()
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.MainWindow.PlotSelectQueries">
-            <summary>
-            Calculates selection time result data for globally given numbers of rows
-            Plots with Plot()
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.MainWindow.PlotInsertQueries">
-            <summary>
-            Calculates insertion time result data for globally given numbers of rows
-            Plots with Plot()
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.MainWindow.PlotRemoveQueries">
-            <summary>
-            Calculates removal time result data for globally given numbers of rows
-            Plots with Plot()
-            </summary>
-        </member>
-        <member name="M:DataGenStatistics.MainWindow.PlotUpdateQueries">
-            <summary>
-            Calculates update time result data for globally given numbers of rows
-            Plots with Plot()
             </summary>
         </member>
         <member name="M:DataGenStatistics.MainWindow.Plot(ScottPlot.WPF.WpfPlot,System.String,System.Int32[],System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.List{System.Int64}},System.String)">
