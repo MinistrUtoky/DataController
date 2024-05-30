@@ -16,12 +16,6 @@ namespace DataGenStatistics
     /// </summary>
     public partial class MainWindow : Window
     {
-        /*
-         * Написать бы для REMOVE и UPDATE прокси функции в генераторе для контроля ID в списках мастеров (в реальной дб не понадобилось бы в виду триггеров
-         * Пофиксить что при одновременной генерации таблицы мастера и зависимой таблицы мастеру добавляется в список зависимых 1 вместо id
-         * Сделать так чтобы UPDATE и REMOVE имели генераторы снаружи
-         * Предположительно все вышеперечисленные проблемы, как и странные рывки графиков времени предположительно возникают из-за асинхронности потоков
-        */
         /// <summary>
         /// Constructor for the main window
         /// </summary>
@@ -31,7 +25,7 @@ namespace DataGenStatistics
             SomeAutotests.TimerTest();
             SomeAutotests.TestDBResponse();
             SomeAutotests.TestGenerator();
-            //RunAllStatistics();
+            RunAllStatistics();
         }
 
         public void RunAllStatistics()
