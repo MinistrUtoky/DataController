@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using DataGenStatistics.classes;
 using DataGenStatistics.investigation;
+using DataGenStatistics.test;
 using ScottPlot;
 using ScottPlot.WPF;
 
@@ -26,14 +27,18 @@ namespace DataGenStatistics
         /// </summary>
         public MainWindow()
         {
-            InitializeComponent(); RunAllStatistics();
+            InitializeComponent();
+            SomeAutotests.TimerTest();
+            SomeAutotests.TestDBResponse();
+            SomeAutotests.TestGenerator();
+            //RunAllStatistics();
         }
 
         public void RunAllStatistics()
         {
             int[] numberOfRows = Enumerable.Range(1, Investigation.maxSteps).Select(a => a * Investigation.numberOfRowsPerStep).ToArray();
             DatabaseSandbox.Instance.Init();
-            ProcessTimers.TimerTest();
+            
             Plot(GeneratorTimings, "Time required for generation",
                  numberOfRows, Investigation.PlotGenerators(numberOfRows), "generator_timings.png");
             Plot(SelectQueryTimings, "Time required for selection",

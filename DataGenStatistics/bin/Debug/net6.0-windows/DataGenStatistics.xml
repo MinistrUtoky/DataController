@@ -57,11 +57,6 @@
             Timers for processes and related utilities
             </summary>
         </member>
-        <member name="M:DataGenStatistics.investigation.ProcessTimers.TimerTest">
-            <summary>
-            Testing process timers by extracting database's table names
-            </summary>
-        </member>
         <member name="M:DataGenStatistics.investigation.ProcessTimers.SeveralProcessesTimeInMilliseconds(System.Collections.Generic.List{System.Func{System.Threading.Tasks.Task}})">
             <summary>
             Calculating time for several processes
@@ -1060,6 +1055,16 @@
         <member name="M:DataGenStatistics.MainWindow.InitializeComponent">
             <summary>
             InitializeComponent
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.test.SomeAutotests.TestDBResponse">
+            <summary>
+            Testing process timers and db response by extracting database's table names
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.test.SomeAutotests.TimerTest">
+            <summary>
+            Testing process timers by iterating
             </summary>
         </member>
     </members>

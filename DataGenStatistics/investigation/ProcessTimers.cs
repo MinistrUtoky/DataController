@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using DataGenStatistics.classes;
 
 namespace DataGenStatistics.investigation
 {
@@ -12,26 +11,6 @@ namespace DataGenStatistics.investigation
     internal class ProcessTimers
     {
         private static Stopwatch masterWatch = Stopwatch.StartNew();
-        /// <summary>
-        /// Testing process timers by extracting database's table names
-        /// </summary>
-        public static void TimerTest()
-        {
-            List<Func<Task>> delegates = new List<Func<Task>>()
-            {
-                async () => { DBClass.GetDataTableByName("library"); },
-                async () => { DBClass.GetDataTableByName("user"); },
-                async () => { DBClass.GetDataTableByName("player"); },
-                async () => { DBClass.GetDataTableByName("archive"); },
-                async () => { DBClass.GetDataTableByName("dedicated_server"); },
-                async () => { DBClass.GetDataTableByName("session"); },
-                async () => { DBClass.GetDataTableByName("lobby"); }
-            };
-            foreach (long l in SeveralProcessesTimeInMilliseconds(delegates))
-            {
-                Trace.WriteLine(l);
-            }
-        }
         /// <summary>
         /// Calculating time for several processes
         /// </summary>
