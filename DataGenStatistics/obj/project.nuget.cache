@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "XhGGhB5IihWFGvpNg9K12O3gUnI3FXTU4qZ/GfCPlHdX2oxc8XV3tH//f+mtLvdOZ2eE3au8ql9Fh3E93W0BQQ==",
+  "dgSpecHash": "jmULnV72SV/SHOVfTp/pgypU11I25olcUbi/DXGHMThUEw64/o6C9oGCBkD8p6b1BdGY3ofK1Av7kNaXKiHPkA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Viqtop\\source\\repos\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
+  "projectFilePath": "C:\\Users\\Viqtop\\source\\repos\\asdsdd\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Viqtop\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.9\\microsoft.netcore.platforms.3.1.9.nupkg.sha512",
     "C:\\Users\\Viqtop\\.nuget\\packages\\microsoft.win32.registry\\4.7.0\\microsoft.win32.registry.4.7.0.nupkg.sha512",

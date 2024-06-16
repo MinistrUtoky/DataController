@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DataGenStatistics"
         xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="960">
+        Title="MainWindow" Height="540" Width="960">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
@@ -16,12 +16,21 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
 
-        <ScottPlot:WpfPlot x:Name="GeneratorTimings" />
-        <ScottPlot:WpfPlot x:Name="InsertQueryTimings" Grid.Row="1"/>
+        <ScottPlot:WpfPlot x:Name="GeneratorTimings" Grid.Column="3" Grid.Row="1"/>
+        <ScottPlot:WpfPlot x:Name="UpdateQueryTimings" Grid.Column="3" Grid.Row="2"/>
+        <ScottPlot:WpfPlot x:Name="MegafunnySelectQueryTimings" Grid.Column="3" Grid.Row="0"/>
+        <ScottPlot:WpfPlot x:Name="InsertQueryTimings" Grid.Row="0"/>
+        <ScottPlot:WpfPlot x:Name="FunnyInsertQueryTimings" Grid.Row="1"/>
+        <ScottPlot:WpfPlot x:Name="FunnierInsertQueryTimings" Grid.Row="2"/>
         <ScottPlot:WpfPlot x:Name="SelectQueryTimings" Grid.Column="1"/>
-        <ScottPlot:WpfPlot x:Name="RemoveQueryTimings" Grid.Row="1" Grid.Column="1"/>
-        <ScottPlot:WpfPlot x:Name="UpdateQueryTimings" Grid.Row="2"/>
+        <ScottPlot:WpfPlot x:Name="FunnySelectQueryTimings" Grid.Column="1" Grid.Row="1"/>
+        <ScottPlot:WpfPlot x:Name="FunnierSelectQueryTimings" Grid.Column="1" Grid.Row="2"/>
+        <ScottPlot:WpfPlot x:Name="RemoveQueryTimings" Grid.Row="0" Grid.Column="2"/>
+        <ScottPlot:WpfPlot x:Name="FunnyRemoveQueryTimings" Grid.Row="1" Grid.Column="2"/>
+        <ScottPlot:WpfPlot x:Name="FunnierRemoveQueryTimings" Grid.Row="2" Grid.Column="2"/>
     </Grid>
 </Window>

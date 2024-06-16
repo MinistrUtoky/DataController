@@ -2,6 +2,7 @@
 using DataGenStatistics.investigation;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -12,7 +13,18 @@ namespace DataGenStatistics.test
         /// <summary>
         /// Testing if some data is generating
         /// </summary>
-        public static void TestGenerator()
+        public static void RunAllTests()
+        {
+            TimerTest();
+            TestDBResponse();
+            TestGenerator();
+            TestInsertion();
+        }
+
+        /// <summary>
+        /// Testing if some data is generating
+        /// </summary>
+        private static void TestGenerator()
         {
             DatabaseSandbox.Instance.GenerateAdditionalData(1, 2, 3, 4, 5, 6, 7);
             if (DatabaseSandbox.Instance.databaseDelta.libraryData.Count != 1 ||
@@ -27,14 +39,33 @@ namespace DataGenStatistics.test
         }
 
         /// <summary>
+        /// Testing if insertion is a success
+        /// </summary>
+        private static void TestInsertion()
+        {
+            try
+            {
+                DatabaseSandbox.Instance.GenerateAdditionalData(1, 1, 1, 1, 1, 1, 1);
+                DatabaseSandbox.Instance.PutDeltaIntoDB();//PutDeltaPartIntoDB(1,1,1,1,1,1,1);
+                DatabaseSandbox.Instance.database.Clear();
+            }
+            catch (SqlException ex)
+            {
+                Trace.WriteLine("Insertion went wrong!");
+                foreach (var error in ex.Errors)
+                    Trace.WriteLine(error);
+            }
+        }
+
+        /// <summary>
         /// Testing process timers and db response by extracting database's table names
         /// </summary>
-        public static void TestDBResponse()
+        private static void TestDBResponse()
         {
             List<Func<Task>> delegates = new List<Func<Task>>()
             {
                 async () => { DBClass.GetDataTableByName("library"); },
-                async () => { DBClass.GetDataTableByName("user"); },
+                async () => { DBClass.GetDataTableByName("users"); },
                 async () => { DBClass.GetDataTableByName("player"); },
                 async () => { DBClass.GetDataTableByName("archive"); },
                 async () => { DBClass.GetDataTableByName("dedicated_server"); },
@@ -43,14 +74,14 @@ namespace DataGenStatistics.test
             };
             foreach (long l in ProcessTimers.SeveralProcessesTimeInMilliseconds(delegates))
             {
-                Trace.WriteLine(l);
+                Trace.WriteLine("Table ping time:" + l);
             }
         }
 
         /// <summary>
         /// Testing process timers by iterating
         /// </summary>
-        public static void TimerTest()
+        private static void TimerTest()
         {
             Func<Task> millionIterations = async () =>
             {

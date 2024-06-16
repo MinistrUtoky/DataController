@@ -51,13 +51,6 @@ namespace DataGenStatistics.classes
 
         #region Library
         /// <summary>
-        /// Generation of a random creation date for library data
-        /// </summary>
-        /// <returns>
-        /// Any DateTime from Unix Epoch up till now
-        /// </returns>
-        public static DateTime GenerateCreationDate() => GenerateDatetime();
-        /// <summary>
         /// Generates no more than a specified amount of library usages
         /// </summary>
         /// <returns>
@@ -125,11 +118,11 @@ namespace DataGenStatistics.classes
         /// <returns>
         /// Selected nickname with random numerical ending 
         /// </returns>
-        public static string GenerateUsername()
+        public static string GenerateUsername(int id)
         {
             StringBuilder username = new StringBuilder();
             username.Append(usernames[rand.Next(0, usernames.Length)]);
-            username.Append((int)Math.Pow(DBClass.GetNextId(Database.defaultUsersName)*2, 3)+7);
+            username.Append((int)Math.Pow(id * 2, 3)+7);
             return username.ToString();
         }
         /// <summary>
@@ -197,12 +190,11 @@ namespace DataGenStatistics.classes
         /// <returns>
         /// Selected nickname with random numerical ending 
         /// </returns>
-        public static string GeneratePlayerNickname()
-        {
-            
+        public static string GeneratePlayerNickname(int id)
+        {            
             StringBuilder name = new StringBuilder();
             name.Append(playerNames[rand.Next(0, playerNames.Length)]);
-            name.Append((int)Math.Pow(DBClass.GetNextId(Database.defaultUsersName) * 3, 2) + 31);
+            name.Append((int)Math.Pow(id * 3, 2) + 31);
             return name.ToString();
         }
         /// <summary>
@@ -398,10 +390,9 @@ namespace DataGenStatistics.classes
         /// </returns>
         public static DateTime GenerateDatetime(DateTime startDate, DateTime endDate)
         {
-            if ((startDate - DateTime.UnixEpoch).TotalSeconds < 0) startDate = DateTime.UnixEpoch;
             TimeSpan timeSpan = endDate - startDate;
-            TimeSpan newSpan = new TimeSpan(0, 0, rand.Next(0, (int)(timeSpan.TotalSeconds + 1)));
-            return startDate + newSpan;
+            TimeSpan newSpan = new TimeSpan(rand.NextInt64(0, timeSpan.Ticks));
+            return startDate.AddTicks(newSpan.Ticks);
         }
         /// <summary>
         /// Generation of a random datetime after set datetime and before the present
@@ -446,13 +437,9 @@ namespace DataGenStatistics.classes
         public static List<int> GetRandomIds(List<Data> data, int n)
         {
             List<int> ids = new();
-            int index;
-            for (int i = 0; i < n; i++)
-            {
-                index = rand.Next(0, data.Count);
-                ids.Add(data[index].Id);
-                data.RemoveAt(index);
-            }
+            List<Data> subData;
+            subData = Shuffle<Data>(data).GetRange(0, Math.Min(data.Count, n));
+            subData.ForEach(item => ids.Add(item.Id));
             return ids;
         }
         /// <summary>

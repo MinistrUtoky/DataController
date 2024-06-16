@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Documents;
 
 namespace DataGenStatistics.classes
 {
     /// <summary>
     /// Abstraction of a sandbox data tuple 
     /// </summary>
-    public interface Data
+    public interface Data 
     {
         public int Id { get; }
         /// <summary>
@@ -23,50 +26,267 @@ namespace DataGenStatistics.classes
         /// </param>
         public Data ToData(List<string> data);
     }
+
+    /// <summary>
+    /// Abstraction of table's properties
+    /// </summary>
+    public interface ITable
+    {
+        public int Count { get; }
+        public string Name { get; }
+        public bool[] PrimaryKeys { get; }
+        public string[] ForeignKeys { get; }
+        public string[] ColumnTypes { get; }
+        public string[] ColumnNames { get; }
+        /// <summary>
+        /// INSERT INTO thisTableName SELECT ... abstraction
+        /// </summary>
+        /// <param name="abstractInsertion">
+        /// Sub-table rows to insert
+        /// </param>
+        public void InsertAbstract(List<object> abstractInsertion);
+
+        /// <summary>
+        /// SELECT *  FROM thisTable abstraction
+        /// </summary>
+        public List<object> SelectAllAbstract();
+        /// <summary>
+        /// SELECT TOP n FROM thisTable abstraction
+        /// </summary>
+        /// <param name="n">
+        /// Number of top rows to select
+        /// </param>
+        public List<object> SelectTopAbstract(int n);
+        /// <summary>
+        /// Deletion command 1 (deleting top rows) (DELETE TOP n FROM thisTable)
+        /// </summary>
+        /// <param name="n">
+        /// Number of top rows to delete
+        /// </param>
+        public void DeleteTop(int n);
+        /// <summary>
+        /// Deletion command 2 (deleting all rows) (DELETE *  FROM thisTable)
+        /// </summary>
+        public void DeleteAll();
+        public Table<object> CastAbstract();
+    }
+
+    /// <summary>
+    /// Sandbox table iterator with main comands
+    /// </summary>
+    public class Table<SomeData> : IEnumerator<SomeData>, ITable
+    {
+        int position = -1;
+        public int Count => Rows.Count;
+        public string Name { get; }
+        public bool[] PrimaryKeys { get; }
+        public string[] ForeignKeys { get; }
+        public string[] ColumnNames { get; }
+        public string[] ColumnTypes { get; }
+        public List<SomeData> Rows { get; }
+        public Table(string name, string[] columnNames, string[] columnTypes, bool[] primaryKeys, string[] foreignKeys)
+        {
+            Name = name; ColumnNames = columnNames; ColumnTypes = columnTypes; Rows = new List<SomeData>(); PrimaryKeys = primaryKeys; ForeignKeys = foreignKeys;
+        }
+        public Table(string name)
+        {
+            Name = name; ColumnNames = new string[0]; ColumnTypes = new string[0]; Rows = new List<SomeData>(); PrimaryKeys = new bool[0]; ForeignKeys = new string[0];
+        }
+        public void InsertAbstract(List<object> abstractInsertion) => Rows.AddRange(abstractInsertion.Cast<SomeData>().ToList());
+        /// <summary>
+        /// Insertion command 1 (inserting sub-table of rows) (INSERT INTO thisTableName SELECT ...)
+        /// </summary>
+        /// <param name="rows">
+        /// Sub-table rows to insert
+        /// </param>
+        public void Insert(List<SomeData> rows) => Rows.AddRange(rows);
+        /// <summary>
+        /// Insertion command 2 (inserting individual item) (INSERT INTO thisTableName VALUES(...))
+        /// </summary>
+        /// <param name="item">
+        /// Sub-table rows to insert
+        /// </param>
+        public void Insert(SomeData item) => Rows.Add(item);
+
+        /// <summary>
+        /// Insertion command 3 (inserting another table's rows) (INSERT INTO thisTableName SELECT * FROM anotherTable)
+        /// </summary>
+        /// <param name="table">
+        /// Table, holding rows to insert
+        /// </param>
+        public void Insert(Table<SomeData> table) => Rows.AddRange(table.SelectAll());
+        public List<object> SelectTopAbstract(int n) => SelectTop(n).Cast<object>().ToList();
+        /// <summary>
+        /// Selection command 1 (selecting top rows) (SELECT TOP n FROM thisTable)
+        /// </summary>
+        /// <param name="n">
+        /// Number of top rows to select
+        /// </param>
+        public List<SomeData> SelectTop(int n) => Rows.GetRange(0, n).ToList();
+        public List<object> SelectAllAbstract() => Rows.ToList().Cast<object>().ToList();
+        /// <summary>
+        /// Selection command 2 (selecting all rows) (SELECT *  FROM thisTable)
+        /// </summary>
+        public List<SomeData> SelectAll() => Rows.ToList();
+        public void DeleteTop(int n) => Rows.RemoveRange(0, n);
+        public void DeleteAll() => Rows.Clear();
+        public Table<T1> Cast<T1>()
+        {
+            Table<T1> table = new Table<T1>(Name, ColumnNames, ColumnTypes, PrimaryKeys, ForeignKeys);
+            table.Insert(Rows.Cast<T1>().ToList());
+            return table;
+        }
+        public Table<object> CastAbstract() => Cast<object>();
+
+        [JsonIgnore]
+        public object Current
+        {
+            get
+            {
+                if (position != -1 & position < Rows.Count) return Rows[position];
+                throw new ArgumentException();
+            }
+        }
+
+        SomeData IEnumerator<SomeData>.Current => (SomeData)Current;
+
+        public void Dispose() { }
+        public void Reset() { position = -1; }
+        public bool MoveNext()
+        {
+            if (position < Rows.Count - 1)
+            {
+                position++; return true;
+            }
+            else return false;
+        }
+    }
+    
+    public struct Junction : Data
+    {
+        private int id;
+        public int firstTableId;
+        public int secondTableId;
+        public int Id { get { return id; } set { id = value; }}
+        public Data ToData(List<string> data)
+        {
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
+            id = int.Parse(data[0]);
+            firstTableId = int.Parse(data[1]);
+            secondTableId = int.Parse(data[2]);
+            return this;
+        }
+
+        public List<string> ToList()
+        {
+            return new List<string>() { id.ToString(), firstTableId.ToString(), secondTableId.ToString() };
+        }
+    }
+
     /// <summary>
     /// Sandbox database
     /// </summary>
     public struct Database
     {
-        public const string defaultLibrariesName = "library";
-        public const string defaultArchivesName = "archive";
-        public const string defaultServersName = "dedicated_server";
-        public const string defaultSessionsName = "session";
-        public const string defaultLobbiesName = "lobby";
-        public const string defaultUsersName = "user";
-        public const string defaultPlayersName = "player";
+        public List<string> schema { get; set; }
+        public List<Table<Junction>> junctionTables { get; set; }
 
-        public List<LibraryData> libraryData;
-        public List<UserData> userData;
-        public List<PlayerData> playerData;
-        public List<ArchiveData> archiveData;
-        public List<ServerData> serverData;
-        public List<SessionData> sessionData;
-        public List<LobbyData> lobbyData;
+        public Table<LibraryData> libraryData { get ; set; }
+        public Table<UserData> userData { get; set; }
+        public Table<PlayerData> playerData { get; set; }
+        public Table<ArchiveData> archiveData { get; set; }
+        public Table<ServerData> serverData { get; set; }
+        public Table<SessionData> sessionData { get; set; }
+        public Table<LobbyData> lobbyData { get; set; }
 
-        public Database()
+        public Database(bool main=false)
         {
-            libraryData = new List<LibraryData>();
-            archiveData = new List<ArchiveData>();
-            serverData = new List<ServerData>();
-            sessionData = new List<SessionData>();
-            lobbyData = new List<LobbyData>();
-            userData = new List<UserData>();
-            playerData = new List<PlayerData>();
-        }
+            schema = new List<string>();
+            junctionTables = new List<Table<Junction>>();
+            libraryData = new Table<LibraryData>("library", new string[] { "ID", "CREATION_DATE", "ARCHIVES_INFO", "ALL_TIME_USERS_INFO", "LIBRARY_USAGES_INFO" },
+                new string[] { "INT", // NOT NULL PRIMARY KEY IDENTITY(1,1)
+                                "DATETIME NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "NVARCHAR(MAX) NULL"},
+                new bool[] { true,false,false,false,false },
+                new string[] { "", "", "", "", "" }); 
+            archiveData = new Table<ArchiveData>("archive", new string[] { "ID", "LIBRARY_ID", "INITIALIZATION_DATE", "SUSPENSION_DATE", "VOLUME", "ARCHIVED_INFO", "REGION" },
+                new string[] { "INT",// NOT NULL PRIMARY KEY IDENTITY(1,1)",
+                                "INT NOT NULL",
+                                "DATETIME NULL",
+                                "DATETIME NULL",
+                                "INT NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "VARCHAR(10)"},
+                new bool[] { true,false,false,false,false, false, false }, 
+                new string[] { "", libraryData.Name + "(ID)", "", "", "", "", "" });
+            serverData = new Table<ServerData>("dedicated_server", 
+                new string[] { "ID", "ARCHIVE_ID", "LOCATION", "PAST_SESSIONS_INFO", "SERVER_AVAILABILITY", "SERVER_CAPACITY" },
+                new string[] { "INT",// NOT NULL PRIMARY KEY IDENTITY(1,1)",
+                                "INT NOT NULL",
+                                "VARCHAR(500) NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "BINARY(1) NULL",
+                                "INT NULL"},
+                new bool[] { true,false,false,false,false, false }, 
+                new string[] { "", archiveData.Name + "(ID)", "", "", "", "" });
+            sessionData = new Table<SessionData>("session", 
+                new string[] { "ID", "DEDICATED_SERVER_ID", "START_DATETIME", "END_DATETIME", "SESSION_INFO" },
+                new string[] { "INT",// NOT NULL PRIMARY KEY IDENTITY(1,1)",
+                                "INT NOT NULL",
+                                "DATETIME NULL",
+                                "DATETIME NULL",
+                                "NVARCHAR(MAX) NULL"},
+                new bool[] { true,false,false,false,false },
+                new string[] { "", serverData.Name + "(ID)", "", "", "" });
+            lobbyData = new Table<LobbyData>("lobby", new string[] { "ID", "SESSION_ID", "NUMBER_OF_PARTICIPANTS", "CREATION_DATE", "PARTICIPANTS_INFO" },
+                new string[] { "INT",// NOT NULL PRIMARY KEY IDENTITY(1,1)",
+                                "INT NOT NULL",
+                                "INT NULL",
+                                "DATETIME NULL",
+                                "NVARCHAR(MAX) NULL"},
+                new bool[] { true,false,false,false,false }, 
+                new string[] { "", sessionData.Name + "(ID)", "", "", "" });
+            userData = new Table<UserData>("users", new string[] { "ID", "NAME", "TECHNICAL_SPECIFICATIONS", "USER_IP", "USER_INFO", "USER_STATUS", "LIBRARY_ID" },
+                new string[] { "INT",// NOT NULL PRIMARY KEY IDENTITY(1,1)",
+                                "VARCHAR(45) NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "VARCHAR(45) NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "VARCHAR(45) NULL",
+                                "INT NOT NULL"},
+                new bool[] { true,false,false,false,false, false, false }, 
+                new string[] { "", "", "", "", "", "", libraryData.Name + "(ID)" });
+            playerData = new Table<PlayerData>("player", new string[] { "ID", "NICKNAME", "PLAYER_STATS", "PLAYER_INVENTORY", "PLAYER_STATUS", "USER_ID" },
+                new string[] { "INT",// NOT NULL PRIMARY KEY IDENTITY(1,1)",
+                                "VARCHAR(45) NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "NVARCHAR(MAX) NULL",
+                                "VARCHAR(45) NULL",
+                                "INT NOT NULL"},
+                new bool[] { true,false,false,false,false, false }, 
+                new string[] { "", "", "", "", "", "[" + userData.Name + "](ID)" });
 
+            foreach (var property in typeof(Database).GetProperties().ToList())
+                if (property.GetValue(this) is ITable)
+                    schema.Add(((ITable)property.GetValue(this)).Name);
+
+            if (main)
+                DatabaseSandbox.SeedDatabaseToMSQLServer(this);
+        }
         /// <summary>
         /// Player stats bit representing value of a certain in-game skill
         /// </summary>
         public void Clear()
         {
-            libraryData.Clear();
-            userData.Clear();
-            playerData.Clear();
-            archiveData.Clear();
-            serverData.Clear();
-            sessionData.Clear();
-            lobbyData.Clear();
+            libraryData.DeleteAll();
+            userData.DeleteAll();
+            playerData.DeleteAll();
+            archiveData.DeleteAll();
+            serverData.DeleteAll();
+            sessionData.DeleteAll();
+            lobbyData.DeleteAll();
         }
         /// <summary>
         /// Addition of another sandbox's values to this sandbox instance 
@@ -76,13 +296,11 @@ namespace DataGenStatistics.classes
         /// </param>
         public void Add(Database anotherDatabase)
         {
-            libraryData.AddRange(anotherDatabase.libraryData);
-            userData.AddRange(anotherDatabase.userData);
-            playerData.AddRange(anotherDatabase.playerData);
-            archiveData.AddRange(anotherDatabase.archiveData);
-            serverData.AddRange(anotherDatabase.serverData);
-            sessionData.AddRange(anotherDatabase.sessionData);
-            lobbyData.AddRange(anotherDatabase.lobbyData);
+            foreach (var property in typeof(Database).GetProperties().ToList())
+                if (property.GetValue(this) is ITable)
+                {
+                    ((ITable)property.GetValue(this)).InsertAbstract(((ITable)property.GetValue(anotherDatabase)).SelectAllAbstract());
+                }
         }
     }
     #region Player
@@ -91,17 +309,17 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct PlayerData : Data
     {
-        public int id;
+        private int id;
         public string nickname;
         public List<Item> playerInventory;
         public PlayerStats playerStats;
         public string playerStatus;
         public int userID;
 
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
         {
-            if (data.Count != 6) throw new Exception("Wrong data size format");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             nickname = data[1];
             playerInventory = JsonSerializer.Deserialize<List<Item>>(data[2]);
@@ -156,7 +374,7 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct UserData : Data
     {
-        public int id;
+        private int id;
         public string name;
         public TechnicalSpecifications technicalSpecifications;
         public string userIP;
@@ -164,10 +382,10 @@ namespace DataGenStatistics.classes
         public string userStatus;
         public int libraryID;
 
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
         {
-            if (data.Count != 7) throw new Exception("Wrong data size format");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             name = data[1];
             technicalSpecifications = JsonSerializer.Deserialize<TechnicalSpecifications>(data[2]);
@@ -223,16 +441,16 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct LobbyData : Data
     {
-        public int id;
+        private int id;
         public int sessionID;
         public int numberOfParticipants;
         public DateTime creationDate;
         public List<int> playerIDs;
 
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
         {
-            if (data.Count != 5) throw new Exception("Wrong data size format");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             sessionID = int.Parse(data[1]);
             numberOfParticipants = int.Parse(data[2]);
@@ -254,16 +472,16 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct SessionData : Data
     {
-        public int id;
+        private int id;
         public int serverID;
         public DateTime startDateTime;
         public DateTime endDateTime;
         public SessionInfo sessionInfo;
 
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
         {
-            if (data.Count != 5) throw new Exception("Wrong data size format");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             serverID = int.Parse(data[1]);
             startDateTime = DateTime.Parse(data[2]);
@@ -299,17 +517,17 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct ServerData : Data
     {
-        public int id;
+        private int id;
         public int archiveID;
         public string location;
         public List<int> sessionIDs;
         public bool serverAvailability;
         public int serverCapacity;
 
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
         {
-            if (data.Count != 6) throw new Exception("Wrong data size format");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             archiveID = int.Parse(data[1]);
             location = data[2];
@@ -332,7 +550,7 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct ArchiveData : Data
     {
-        public int id;
+        private int id;
         public int libraryID;
         public DateTime initializationDateTime;
         public DateTime suspensionDateTime;
@@ -340,10 +558,10 @@ namespace DataGenStatistics.classes
         public List<int> serverIDs;
         public string region;
 
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
         {
-            if (data.Count != 7) throw new Exception("Wrong data size format");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             libraryID = int.Parse(data[1]);
             initializationDateTime = DateTime.Parse(data[2]);
@@ -367,12 +585,12 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct LibraryData : Data
     {
-        public int id;
-        public DateTime creationDate { get; set; }
+        private int id;
+        public DateTime creationDate { get; set; } 
         public ArchivesInfo archivesInfo { get; set; }
         public UsersInfo usersInfo { get; set; }
         public LibraryUsages libraryUsages { get; set; }
-        public int Id => id;
+        public int Id { get { return id; } set { id = value; }}
         public List<string> ToList()
         {
             return new List<string>() { id.ToString(), creationDate.ToString("yyyy-MM-dd HH:mm:ss"), JsonSerializer.Serialize(archivesInfo),
@@ -380,7 +598,8 @@ namespace DataGenStatistics.classes
         }
         public Data ToData(List<string> data)
         {
-            if (data.Count != 5) throw new Exception("Wrong data size format");
+            if (data.Any(item => item == "")) throw new Exception("Can't parse empty data");
+            if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
             id = int.Parse(data[0]);
             creationDate = DateTime.Parse(data[1]);
             archivesInfo = JsonSerializer.Deserialize<ArchivesInfo>(data[2]);

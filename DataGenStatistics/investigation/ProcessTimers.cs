@@ -10,7 +10,7 @@ namespace DataGenStatistics.investigation
     /// </summary>
     internal class ProcessTimers
     {
-        private static Stopwatch masterWatch = Stopwatch.StartNew();
+        private static Stopwatch masterWatch = new Stopwatch();
         /// <summary>
         /// Calculating time for several processes
         /// </summary>
@@ -46,3 +46,4 @@ namespace DataGenStatistics.investigation
         }
     }
 }
+        

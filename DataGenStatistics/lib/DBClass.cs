@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Data.SqlClient;
+using System.Diagnostics;
 
 namespace DataGenStatistics.classes
 {
@@ -12,8 +13,9 @@ namespace DataGenStatistics.classes
     /// </summary>
     public static class DBClass
     {
-        private static string cn_String = "";
-        private static string dbName = "myDB.mdf";
+        public static string cn_String = "";
+        public static string dbName = "myDB.mdf";
+        public static string junctionTableEnding = "JunctionTable";
 
         /// <summary>
         /// Extracting table names from db
@@ -55,9 +57,11 @@ namespace DataGenStatistics.classes
         /// </returns>
         public static SqlConnection GetDBConnection()
         {
-            cn_String = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" + Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\" + dbName + "; Integrated Security=True;";
+            cn_String = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" + Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\" + dbName + ";Integrated security=true;";
             SqlConnection cn_connection = new SqlConnection(cn_String);
+
             if (cn_connection.State != ConnectionState.Open) cn_connection.Open();
+            //Trace.WriteLine(cn_String);
             return cn_connection;
         }
         /// <summary>
@@ -89,8 +93,20 @@ namespace DataGenStatistics.classes
         {
             using (SqlConnection cn_connection = GetDBConnection())
             {
+                //Trace.WriteLine(SQL_Text);
                 SqlCommand cmd_Command = new SqlCommand(SQL_Text, cn_connection);
-                cmd_Command.ExecuteNonQuery();
+                try
+                {
+                    cmd_Command.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    Trace.WriteLine(SQL_Text);
+                    foreach (var error in ex.Errors)
+                    {
+                        Trace.WriteLine(error);
+                    }
+                }
             }
         }
         /// <summary>
@@ -142,24 +158,81 @@ namespace DataGenStatistics.classes
         /// <param name="new_element">
         /// List of insertion element values fitting the mask of all non-primary colimns
         /// </param>
-        public static void DBInsert(string tableName, List<string> new_element)
+        public static void DBInsert(string tableName, Data new_element)
         {
             StringBuilder values = new StringBuilder();
-            for (int i = 1; i < new_element.Count; i++)
+            List<string> new_element_list = new_element.ToList();
+            for (int i = 1; i < new_element.ToList().Count; i++)
             {
-                if (new_element[i].ToUpper() == "TRUE" || new_element[i].ToUpper() == "FALSE")
+                if (new_element_list[i].ToUpper() == "TRUE" || new_element_list[i].ToUpper() == "FALSE")
                 {
-                    values.Append("CAST('"); values.Append(new_element[i]); values.Append("' as bit)");
+                    values.Append("CAST('"); values.Append(new_element_list[i]); values.Append("' as bit)");
                 }
                 else
                 {
-                    values.Append("'"); values.Append(new_element[i]); values.Append("'");
+                    values.Append("'"); values.Append(new_element_list[i]); values.Append("'");
                 }
-                if (i != new_element.Count - 1) values.Append(",");
+                if (i != new_element_list.Count - 1) values.Append(",");
             }
-            string sql_Add = "INSERT INTO \"" + tableName + "\" VALUES(" + values + ")";
+            string sql_Add = "INSERT INTO [" + tableName + "] VALUES(" + values + ")";
+            //Trace.WriteLine(sql_Add);
+            ExecuteSQL(sql_Add);
+            //GetTableNames().ForEach(name => DBInsertIntoJunction(name, tableName, new_element.Id.ToString()));
+        }
+
+        /// <summary>
+        /// Insertion of an element to the table with content specified by select statement
+        /// Example: INSERT INTO Table1(column11,column12,column13) SELECT column21, column22, column23 FROM Table2;
+        /// </summary>
+        /// <param name="tableName">
+        /// Name of the table to insert into
+        /// </param>
+        /// <param name="columnNames">
+        /// Names of the columns to insert into (the rest is default)
+        /// </param>
+        /// <param name="afterStatement">
+        /// "SELECT ..." fitting the columns of the table the insertion is happening for or any other afterstatement like "DEFAULT VALUES" or "VALUES(...)"
+        /// </param>
+        public static void DBInsertSelect(string name, List<string> columnNames, string afterStatement)
+        {
+            string sql_Add;
+            if (columnNames.Count > 0)
+            {
+                StringBuilder columnNamesThroughComma = new StringBuilder();
+                columnNamesThroughComma.Append(columnNames[0]);
+                for (int i = 1; i < columnNames.Count; i++)
+                {
+                    columnNamesThroughComma.Append(",");
+                    columnNamesThroughComma.Append(columnNames[i]);
+                }
+                sql_Add = "INSERT INTO [" + name + "](" + columnNamesThroughComma + ") " + afterStatement + ";";
+            }
+            else
+                sql_Add = "INSERT INTO [" + name + "] " + afterStatement + ";";
+            //Trace.WriteLine(sql_Add);
             ExecuteSQL(sql_Add);
         }
+
+        /// <summary>
+        /// Insertion of a new id pair into the junction table
+        /// </summary>
+        /// <param name="junctionTableName">
+        /// Name of the junction table to insert into
+        /// </param>
+        public static void DBInsertIntoJunction(string junctionTableName, string tableName, string id)
+        {
+            if (!junctionTableName.Contains(junctionTableEnding) || !junctionTableName.Contains(tableName)) return;
+            List<string> tablesInJunction = GetColumnNames(junctionTableName).GetRange(1, 2);
+            if (tablesInJunction[0] == tableName)
+                ExecuteSQL("INSERT INTO " + junctionTableName + 
+                           "(" + tablesInJunction[0] + "," + tablesInJunction[1] + 
+                           ") SELECT " + id + " as someconst, ID FROM " + tablesInJunction[1] + ";");
+            else
+                ExecuteSQL("INSERT INTO " + junctionTableName +
+                           "(" + tablesInJunction[1] + "," + tablesInJunction[0] +
+                           ") SELECT " + id + " as someconst, ID FROM " + tablesInJunction[0] + ";");
+        }
+
         /// <summary>
         /// Insertion of multiple elements to the table with set content
         /// </summary>
@@ -172,8 +245,9 @@ namespace DataGenStatistics.classes
         public static void DBInsertMultiple(string tableName, List<Data> data)
         {
             foreach (Data d in data)
-                DBInsert(tableName, d.ToList());
+                DBInsert(tableName, d);
         }
+
         /// <summary>
         /// Removal of a tuple with specified id
         /// </summary>
@@ -195,7 +269,7 @@ namespace DataGenStatistics.classes
         /// </param>
         public static void DBRemove(string tableName, string where)
         {
-            string sql_Remove = "DELETE FROM " + tableName + " WHERE " + where + ";";
+            string sql_Remove = "DELETE FROM [" + tableName + "] WHERE " + where + ";";
             ExecuteSQL(sql_Remove);
         }
         /// <summary>
@@ -298,13 +372,14 @@ namespace DataGenStatistics.classes
         /// <param name="types">
         /// Types of the new table's columns 
         /// (types are assigned in the same sequence as column names)
+        /// (You can even choose the modified type such as primary key, identity, auto-increment etc.)
         /// </param>
         /// <param name="foreignKeysOrEmpty">
         /// List of empty strings or string table references matching "[*tableName*].*columnName*"
         /// </param>
-        public static void CreateNewTable(string name, List<string> columnNames, List<string> types, List<string> foreignKeysOrEmpty)
+        public static void CreateNewTable(string name, List<string> columnNames, List<string> types, List<string> foreignKeysOrEmpty, bool junctionTablesRequired)
         {
-            if (GetTableNames().Contains(name)) throw new Exception("Table with the name " + name + " already exists");
+            if (GetTableNames().Contains(name)) { Trace.WriteLine("Table with the name " + name + " already exists"); return; }
             if (columnNames.Count != types.Count
                 || columnNames.Count != foreignKeysOrEmpty.Count) throw new Exception("Numbers of columns, types and keys are not synchronized");
             StringBuilder sb = new StringBuilder();
@@ -320,29 +395,185 @@ namespace DataGenStatistics.classes
                 if (i != columnNames.Count - 1)
                     sb.Append(", ");
             }
-            for (int i = 0; i < foreignKeysOrEmpty.Count; i++)
-            {
-            }
             string sql_Add_New_Table = "CREATE TABLE [dbo].[" + name + "] ( " + sb.ToString() + ");";
+            Trace.WriteLine(sql_Add_New_Table);
             ExecuteSQL(sql_Add_New_Table);
+            if (junctionTablesRequired)
+                GetTableNames().ForEach(tableName => {
+                    CreateManyToManyConnectionTable(name, tableName);
+                    });
         }
+        /// <summary>
+        /// Creating a junction table for two other tables in the database
+        /// </summary>
+        /// <param name="name">
+        /// Name of a new junction table
+        /// </param>
+        /// <param name="tableName1">
+        /// Name of the first table in the junction
+        /// </param>
+        /// <param name="tableName2">
+        /// Name of the second table in the junction
+        /// </param>
+        public static void CreateManyToManyConnectionTable(string tableName1, string tableName2)
+        {
+            if (tableName1.Equals(tableName2) || (tableName1+tableName2).Contains(junctionTableEnding)) return;
+            CreateNewTable(tableName1 + tableName2 + junctionTableEnding, new List<string>() { "ID", tableName1, tableName2 },
+                                 new List<string>() { "INT NOT NULL PRIMARY KEY IDENTITY(1,1)", "INT NOT NULL", "INT NOT NULL" },
+                                 new List<string>() { "", tableName1+"(ID)", tableName2+"(ID)" }, false);
+
+            ExecuteSQL("CREATE TRIGGER dbo." + tableName1 + tableName2 + junctionTableEnding + "InsertionTrigger ON " + tableName1
+                       + " AFTER INSERT AS BEGIN " +
+                       "INSERT INTO " + tableName1 + tableName2 + junctionTableEnding + "(" + tableName1 + "," + tableName2 + ") " +
+                       "SELECT i.id, t3.ID FROM inserted i CROSS JOIN " + tableName2 + " t3; " +
+                       "END");
+            ExecuteSQL("CREATE TRIGGER dbo." + tableName1 + tableName2 + junctionTableEnding + "DeletionTrigger1 ON "
+                + tableName1 + " FOR DELETE AS DELETE FROM " + tableName1 + tableName2 + junctionTableEnding
+                + " WHERE "+ tableName1 +" IN(SELECT deleted.id FROM deleted)");
+            ExecuteSQL("CREATE TRIGGER dbo." + tableName1 + tableName2 + junctionTableEnding + "DeletionTrigger2 ON "
+                + tableName2 + " FOR DELETE AS DELETE FROM " + tableName1 + tableName2 + junctionTableEnding
+                + " WHERE " + tableName2 + " IN(SELECT deleted.id FROM deleted)");
+        }
+
         /// <summary>
         /// Truncating the specific table
         /// </summary>
         /// <param name="tableName">
         /// Name of a table to truncate
         /// </param>
-        public static void ClearTable(string tableName) => ExecuteSQL("TRUNCATE TABLE [" + tableName +"]");
+        public static void ClearTable(string tableName)
+        {
+            UncheckAllConstraintsInDB();
+            ExecuteSQL("DELETE FROM [" + tableName + "];");
+            CheckAllConstraintsInDB();
+        }
         /// <summary>
         /// Truncating all the tables in database
         /// </summary>
         public static void ClearAllTables() => GetTableNames().ForEach(tableName => ClearTable(tableName));
+
         /// <summary>
         /// Deleting the specific table
         /// </summary>
         /// <param name="tableName">
         /// Name of a table to drop
         /// </param>
-        public static void DropTable(string tableName) => ExecuteSQL("DROP TABLE [" + tableName + "]");
+        public static void DropTable(string tableName)
+        {
+            ExecuteSQL("DROP TABLE [dbo].[" + tableName + "]");
+        }
+
+        /// <summary>
+        /// Deleting all tables in the database
+        /// </summary>
+        public static void DropAll()
+        {
+            ExecuteSQL("exec sp_MSforeachtable \"declare @name nvarchar(max); " +
+                           "set @name = parsename('?', 1); " +
+                           "exec sp_MSdropconstraints @name\"; " +
+                           "exec sp_MSforeachtable \"drop table ?\";");            
+            GetTableNames().ForEach(tableName => {
+                DropTable(tableName);
+            });
+            /*foreach (DataRow trigger in GetDataTable("SELECT o.name AS trigger_name FROM sysobjects as o " +
+                "INNER JOIN sysobjects AS o2 ON o.parent_obj = o2.id " +
+                "INNER JOIN sysusers AS s ON o2.uid = s.uid " +
+                "WHERE o.type = 'TR';").Rows)
+            {
+                Trace.WriteLine("DROP TRIGGER " + trigger.ItemArray[0]);
+                ExecuteSQL("DROP TRIGGER " + trigger.ItemArray[0]);
+            }*/
+        }
+
+        /// <summary>
+        /// Truncates the specific table and fills it with new data
+        /// </summary>
+        /// <param name="tableName">
+        /// Name of a table to replace data in
+        /// </param>
+        /// <param name="newData">
+        /// Data to replace table's contents with
+        /// </param>
+        public static void ReplaceAllDataInTableWithNew(string tableName, List<Data> newData)
+        {
+            ClearTable(tableName);
+            DBInsertMultiple(tableName, newData);
+        }
+        /// <summary>
+        /// Unchecks all constrains for a table allowing DML commands without restriction
+        /// </summary>
+        public static void UncheckAllConstraintsInDB() => GetTableNames().ForEach(name => { ExecuteSQL("ALTER TABLE [" + name + "] NOCHECK CONSTRAINT ALL;"); } );
+        /// <summary>
+        /// Checks all constrains on for a table back again
+        /// </summary>
+        public static void CheckAllConstraintsInDB() => GetTableNames().ForEach(name => { ExecuteSQL("ALTER TABLE [" + name + "] CHECK CONSTRAINT ALL;"); });
+
+        /// <summary>
+        /// Gets all primary key column names from the table
+        /// </summary>
+        /// <param name="tableName">
+        /// Name of a table to get primary key column names from
+        /// </param>
+        public static List<string> GetPrimaryKeys(string tableName)
+        {
+            List<string> columnNames = new List<string>();
+
+            DataRowCollection rows = GetDataTable("SELECT C.COLUMN_NAME " +
+                                    "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS T " +
+                                    "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE C " +
+                                    "ON C.CONSTRAINT_NAME=T.CONSTRAINT_NAME " +
+                                    "WHERE C.TABLE_NAME='" + tableName + "' " +
+                                    "AND T.CONSTRAINT_TYPE='PRIMARY KEY'").Rows;
+            if (rows.Count > 0)
+                foreach (object? item in rows[0].ItemArray)
+                    columnNames.Add(item.ToString());
+            return columnNames;
+        }
+
+        /// <summary>
+        /// Gets all foreign key column names from the table
+        /// </summary>
+        /// <param name="tableName">
+        /// Name of a table to get foreign key column names from
+        /// </param>
+        public static List<string[]> GetForeignKeys(string tableName)
+        {
+            List<string[]> referenceNames = new List<string[]>();
+            DataRowCollection rows = GetDataTable("SELECT DISTINCT COL_NAME(fc.parent_object_id, fc.parent_column_id) col, OBJECT_NAME(f.referenced_object_id) TableName, COL_NAME(fc.referenced_object_id, fc.referenced_column_id) anotherCol " +
+                                                "FROM sys.foreign_keys AS f " +
+                                                "INNER JOIN sys.foreign_key_columns AS fc " +
+                                                "ON f.OBJECT_ID = fc.constraint_object_id " +
+                                                "INNER JOIN sys.tables t " +
+                                                "ON t.OBJECT_ID = fc.referenced_object_id " +
+                                                "WHERE OBJECT_NAME (f.parent_object_id) = '" + tableName + "'").Rows; 
+                                              /*GetDataTable("SELECT C.COLUMN_NAME " +
+                                                "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS T " +
+                                                "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE C " +
+                                                "ON C.CONSTRAINT_NAME=T.CONSTRAINT_NAME " +
+                                                "WHERE C.TABLE_NAME='" + tableName + "' " +
+                                                "AND T.CONSTRAINT_TYPE='FOREIGN KEY'").Rows; - alternative without straight up reference for primary key*/ 
+            if (rows.Count>0)
+                foreach (DataRow row in rows)
+                    referenceNames.Add(new string[2] { row.ItemArray[0].ToString(), row.ItemArray[1] + "(" + row.ItemArray[2] + ")" });
+            return referenceNames;
+        }
+
+        /// <summary>
+        /// Gets all foreign key column names from the table
+        /// </summary>
+        /// <param name="tableName">
+        /// Name of a table to get foreign key column names from
+        /// </param>
+        public static List<string> GetColumnTypes(string tableName)
+        {
+            List<string> columnTypes = new List<string>();
+            DataRowCollection rows = GetDataTable("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'").Rows;
+            if (rows.Count > 0)
+                foreach (DataRow row in rows)
+                {
+                    columnTypes.Add(row.ItemArray[0].ToString());
+                }
+            return columnTypes;
+        }
     }
 }

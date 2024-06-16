@@ -1375,11 +1375,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Viqtop\\source\\repos\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
+      "projectUniqueName": "C:\\Users\\Viqtop\\source\\repos\\asdsdd\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
       "projectName": "DataGenStatistics",
-      "projectPath": "C:\\Users\\Viqtop\\source\\repos\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
+      "projectPath": "C:\\Users\\Viqtop\\source\\repos\\asdsdd\\DataController\\DataGenStatistics\\DataGenStatistics.csproj",
       "packagesPath": "C:\\Users\\Viqtop\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Viqtop\\source\\repos\\DataController\\DataGenStatistics\\obj\\",
+      "outputPath": "C:\\Users\\Viqtop\\source\\repos\\asdsdd\\DataController\\DataGenStatistics\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
