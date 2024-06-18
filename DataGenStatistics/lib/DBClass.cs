@@ -5,7 +5,11 @@ using System.Data;
 using System.Text;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Windows.Forms;
 
+///<summary>
+/// This document is made for universal relational database interaction
+/// </summary>
 namespace DataGenStatistics.classes
 {
     /// <summary>
@@ -13,9 +17,11 @@ namespace DataGenStatistics.classes
     /// </summary>
     public static class DBClass
     {
-        public static string cn_String = "";
+        public static string dbHeadFolder = "\\data\\";
         public static string dbName = "myDB.mdf";
+        public static string cn_String = "";
         public static string junctionTableEnding = "JunctionTable";
+        public const bool junctionTablesRequired = false;
 
         /// <summary>
         /// Extracting table names from db
@@ -49,21 +55,32 @@ namespace DataGenStatistics.classes
                 return tables;
             }
         }
+
         /// <summary>
-        /// Getting connection to database 
+        /// Getting connection to database by it's full filename 
         /// </summary>
+        /// <param name="fullDBFilename">
+        /// Full name of the database, including path, name of the file and it's extension
+        /// </param>
         /// <returns>
         /// Database connection object
         /// </returns>
-        public static SqlConnection GetDBConnection()
+        public static SqlConnection GetDBConnection(string fullDBFilename)
         {
-            cn_String = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" + Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + @"\data\" + dbName + ";Integrated security=true;";
+            cn_String = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" + fullDBFilename + ";Integrated security=true;";
             SqlConnection cn_connection = new SqlConnection(cn_String);
 
             if (cn_connection.State != ConnectionState.Open) cn_connection.Open();
             //Trace.WriteLine(cn_String);
             return cn_connection;
         }
+        /// <summary>
+        /// Getting connection to globally stated database database relative to the project folder 
+        /// </summary>
+        /// <returns>
+        /// Database connection object
+        /// </returns>
+        public static SqlConnection GetDBConnection() => GetDBConnection(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + dbHeadFolder + dbName);
         /// <summary>
         /// Getting data table with SELECT statement
         /// </summary>
@@ -83,8 +100,9 @@ namespace DataGenStatistics.classes
                 return table;
             }
         }
+
         /// <summary>
-        /// Execution of anys SQL command without anything in return
+        /// Execution of any SQL command using already established connection with a database
         /// </summary>
         /// <param name="SQL_Text">
         /// SQL command text
@@ -103,9 +121,8 @@ namespace DataGenStatistics.classes
                 {
                     Trace.WriteLine(SQL_Text);
                     foreach (var error in ex.Errors)
-                    {
                         Trace.WriteLine(error);
-                    }
+                    throw ex;
                 }
             }
         }
@@ -158,33 +175,39 @@ namespace DataGenStatistics.classes
         /// <param name="new_element">
         /// List of insertion element values fitting the mask of all non-primary colimns
         /// </param>
-        public static void DBInsert(string tableName, Data new_element)
-        {
-            StringBuilder values = new StringBuilder();
-            List<string> new_element_list = new_element.ToList();
-            for (int i = 1; i < new_element.ToList().Count; i++)
-            {
-                if (new_element_list[i].ToUpper() == "TRUE" || new_element_list[i].ToUpper() == "FALSE")
+        public static bool TryDBInsert(string tableName, Data new_element) 
+        { 
+        
+            try{
+                StringBuilder values = new StringBuilder();
+                List<string> new_element_list = new_element.ToList();
+                for (int i = 1; i < new_element.ToList().Count; i++)
                 {
-                    values.Append("CAST('"); values.Append(new_element_list[i]); values.Append("' as bit)");
+                    if (new_element_list[i].ToUpper() == "TRUE" || new_element_list[i].ToUpper() == "FALSE")
+                    {
+                        values.Append("CAST('"); values.Append(new_element_list[i]); values.Append("' as bit)");
+                    }
+                    else
+                    {
+                        values.Append("'"); values.Append(new_element_list[i]); values.Append("'");
+                    }
+                    if (i != new_element_list.Count - 1) values.Append(",");
                 }
-                else
-                {
-                    values.Append("'"); values.Append(new_element_list[i]); values.Append("'");
-                }
-                if (i != new_element_list.Count - 1) values.Append(",");
+                string sql_Add = "INSERT INTO [" + tableName + "] VALUES(" + values + ")";
+                //Trace.WriteLine(sql_Add);
+                ExecuteSQL(sql_Add);
+                if (junctionTablesRequired)
+                    GetTableNames().ForEach(name => DBInsertIntoJunction(name, tableName, new_element.Id.ToString()));
+                return true;
             }
-            string sql_Add = "INSERT INTO [" + tableName + "] VALUES(" + values + ")";
-            //Trace.WriteLine(sql_Add);
-            ExecuteSQL(sql_Add);
-            //GetTableNames().ForEach(name => DBInsertIntoJunction(name, tableName, new_element.Id.ToString()));
+            catch (SqlException ex) { return false; }
         }
 
         /// <summary>
         /// Insertion of an element to the table with content specified by select statement
         /// Example: INSERT INTO Table1(column11,column12,column13) SELECT column21, column22, column23 FROM Table2;
         /// </summary>
-        /// <param name="tableName">
+        /// <param name="name">
         /// Name of the table to insert into
         /// </param>
         /// <param name="columnNames">
@@ -224,8 +247,8 @@ namespace DataGenStatistics.classes
             if (!junctionTableName.Contains(junctionTableEnding) || !junctionTableName.Contains(tableName)) return;
             List<string> tablesInJunction = GetColumnNames(junctionTableName).GetRange(1, 2);
             if (tablesInJunction[0] == tableName)
-                ExecuteSQL("INSERT INTO " + junctionTableName + 
-                           "(" + tablesInJunction[0] + "," + tablesInJunction[1] + 
+                ExecuteSQL("INSERT INTO " + junctionTableName +
+                           "(" + tablesInJunction[0] + "," + tablesInJunction[1] +
                            ") SELECT " + id + " as someconst, ID FROM " + tablesInJunction[1] + ";");
             else
                 ExecuteSQL("INSERT INTO " + junctionTableName +
@@ -242,10 +265,14 @@ namespace DataGenStatistics.classes
         /// <param name="data">
         /// List of data structures convertable to lists of string insertion contents 
         /// </param>
-        public static void DBInsertMultiple(string tableName, List<Data> data)
+        public static bool TryDBInsertMultiple(string tableName, List<Data> data)
         {
-            foreach (Data d in data)
-                DBInsert(tableName, d);
+            Queue<Data> commitQueue = new Queue<Data>(); data.ForEach(row => commitQueue.Enqueue(row));
+            bool perceveranceFlag = true; 
+            while (commitQueue.Count > 0)
+                if (!TryDBInsert(tableName, commitQueue.Dequeue()))
+                    perceveranceFlag = false;
+            return perceveranceFlag;
         }
 
         /// <summary>
@@ -272,6 +299,7 @@ namespace DataGenStatistics.classes
             string sql_Remove = "DELETE FROM [" + tableName + "] WHERE " + where + ";";
             ExecuteSQL(sql_Remove);
         }
+
         /// <summary>
         /// Update of specified columns with certain values of a tuple with set id 
         /// </summary>
@@ -289,6 +317,7 @@ namespace DataGenStatistics.classes
         /// </param>
         public static void DBUpdate(string tableName, List<string> columnNames, List<string> newValues, int id)
             => DBUpdate(tableName, columnNames, newValues, "ID=" + id);
+
         /// <summary>
         /// Update of specified columns with certain values of tuples by set condition
         /// </summary>
@@ -324,6 +353,7 @@ namespace DataGenStatistics.classes
             string sql_Update = "UPDATE [" + tableName + "] SET " + values + " WHERE " + where;
             ExecuteSQL(sql_Update);
         }
+
         /// <summary>
         /// Update of multiple identified tuples with specified data.
         /// Number and sequence of ids must be exactly preset to the number and sequence of data.  
@@ -350,6 +380,7 @@ namespace DataGenStatistics.classes
                 }
             }
         }
+
         /// <summary>
         /// Getting the whole table by it's name
         /// </summary>
@@ -360,6 +391,7 @@ namespace DataGenStatistics.classes
         /// DataTable object that mirrors the specified table
         /// </returns>
         public static DataTable GetDataTableByName(string tableName) => GetDataTable("SELECT * FROM [" + tableName + "]");
+
         /// <summary>
         /// Creating a new table in the database
         /// </summary>
@@ -379,7 +411,7 @@ namespace DataGenStatistics.classes
         /// </param>
         public static void CreateNewTable(string name, List<string> columnNames, List<string> types, List<string> foreignKeysOrEmpty, bool junctionTablesRequired)
         {
-            if (GetTableNames().Contains(name)) { Trace.WriteLine("Table with the name " + name + " already exists"); return; }
+            if (GetTableNames().Contains(name.ToLower()) || GetTableNames().Contains(name.ToUpper())) { Trace.WriteLine("Table with the name " + name + " already exists"); return; }
             if (columnNames.Count != types.Count
                 || columnNames.Count != foreignKeysOrEmpty.Count) throw new Exception("Numbers of columns, types and keys are not synchronized");
             StringBuilder sb = new StringBuilder();
@@ -396,13 +428,18 @@ namespace DataGenStatistics.classes
                     sb.Append(", ");
             }
             string sql_Add_New_Table = "CREATE TABLE [dbo].[" + name + "] ( " + sb.ToString() + ");";
+            //sql_Add_New_Table = string.Join("NVARCHAR(MAX)", string.Join("NVARCHAR", sql_Add_New_Table.ToUpper().Split("NVARCHAR(MAX)")).Split("NVARCHAR"));
+            sql_Add_New_Table = string.Join("VARCHAR(MAX)", string.Join("VARCHAR", sql_Add_New_Table.ToUpper().Split("VARCHAR(MAX)")).Split("VARCHAR"));
+            sql_Add_New_Table = string.Join("VARCHAR(", sql_Add_New_Table.ToUpper().Split("VARCHAR(MAX)("));
             Trace.WriteLine(sql_Add_New_Table);
             ExecuteSQL(sql_Add_New_Table);
             if (junctionTablesRequired)
-                GetTableNames().ForEach(tableName => {
+                GetTableNames().ForEach(tableName =>
+                {
                     CreateManyToManyConnectionTable(name, tableName);
-                    });
+                });
         }
+
         /// <summary>
         /// Creating a junction table for two other tables in the database
         /// </summary>
@@ -417,10 +454,10 @@ namespace DataGenStatistics.classes
         /// </param>
         public static void CreateManyToManyConnectionTable(string tableName1, string tableName2)
         {
-            if (tableName1.Equals(tableName2) || (tableName1+tableName2).Contains(junctionTableEnding)) return;
+            if (tableName1.Equals(tableName2) || (tableName1 + tableName2).Contains(junctionTableEnding)) return;
             CreateNewTable(tableName1 + tableName2 + junctionTableEnding, new List<string>() { "ID", tableName1, tableName2 },
                                  new List<string>() { "INT NOT NULL PRIMARY KEY IDENTITY(1,1)", "INT NOT NULL", "INT NOT NULL" },
-                                 new List<string>() { "", tableName1+"(ID)", tableName2+"(ID)" }, false);
+                                 new List<string>() { "", tableName1 + "(ID)", tableName2 + "(ID)" }, false);
 
             ExecuteSQL("CREATE TRIGGER dbo." + tableName1 + tableName2 + junctionTableEnding + "InsertionTrigger ON " + tableName1
                        + " AFTER INSERT AS BEGIN " +
@@ -429,7 +466,7 @@ namespace DataGenStatistics.classes
                        "END");
             ExecuteSQL("CREATE TRIGGER dbo." + tableName1 + tableName2 + junctionTableEnding + "DeletionTrigger1 ON "
                 + tableName1 + " FOR DELETE AS DELETE FROM " + tableName1 + tableName2 + junctionTableEnding
-                + " WHERE "+ tableName1 +" IN(SELECT deleted.id FROM deleted)");
+                + " WHERE " + tableName1 + " IN(SELECT deleted.id FROM deleted)");
             ExecuteSQL("CREATE TRIGGER dbo." + tableName1 + tableName2 + junctionTableEnding + "DeletionTrigger2 ON "
                 + tableName2 + " FOR DELETE AS DELETE FROM " + tableName1 + tableName2 + junctionTableEnding
                 + " WHERE " + tableName2 + " IN(SELECT deleted.id FROM deleted)");
@@ -447,6 +484,7 @@ namespace DataGenStatistics.classes
             ExecuteSQL("DELETE FROM [" + tableName + "];");
             CheckAllConstraintsInDB();
         }
+
         /// <summary>
         /// Truncating all the tables in database
         /// </summary>
@@ -471,18 +509,20 @@ namespace DataGenStatistics.classes
             ExecuteSQL("exec sp_MSforeachtable \"declare @name nvarchar(max); " +
                            "set @name = parsename('?', 1); " +
                            "exec sp_MSdropconstraints @name\"; " +
-                           "exec sp_MSforeachtable \"drop table ?\";");            
-            GetTableNames().ForEach(tableName => {
+                           "exec sp_MSforeachtable \"drop table ?\";");
+            GetTableNames().ForEach(tableName =>
+            {
                 DropTable(tableName);
             });
-            /*foreach (DataRow trigger in GetDataTable("SELECT o.name AS trigger_name FROM sysobjects as o " +
-                "INNER JOIN sysobjects AS o2 ON o.parent_obj = o2.id " +
-                "INNER JOIN sysusers AS s ON o2.uid = s.uid " +
-                "WHERE o.type = 'TR';").Rows)
-            {
-                Trace.WriteLine("DROP TRIGGER " + trigger.ItemArray[0]);
-                ExecuteSQL("DROP TRIGGER " + trigger.ItemArray[0]);
-            }*/
+            if (junctionTablesRequired)
+                foreach (DataRow trigger in GetDataTable("SELECT o.name AS trigger_name FROM sysobjects as o " +
+                                                        "INNER JOIN sysobjects AS o2 ON o.parent_obj = o2.id " +
+                                                        "INNER JOIN sysusers AS s ON o2.uid = s.uid " +
+                                                        "WHERE o.type = 'TR';").Rows)
+                {
+                    Trace.WriteLine("DROP TRIGGER " + trigger.ItemArray[0]);
+                    ExecuteSQL("DROP TRIGGER " + trigger.ItemArray[0]);
+                }
         }
 
         /// <summary>
@@ -497,12 +537,14 @@ namespace DataGenStatistics.classes
         public static void ReplaceAllDataInTableWithNew(string tableName, List<Data> newData)
         {
             ClearTable(tableName);
-            DBInsertMultiple(tableName, newData);
+            TryDBInsertMultiple(tableName, newData);
         }
+
         /// <summary>
         /// Unchecks all constrains for a table allowing DML commands without restriction
         /// </summary>
-        public static void UncheckAllConstraintsInDB() => GetTableNames().ForEach(name => { ExecuteSQL("ALTER TABLE [" + name + "] NOCHECK CONSTRAINT ALL;"); } );
+        public static void UncheckAllConstraintsInDB() => GetTableNames().ForEach(name => { ExecuteSQL("ALTER TABLE [" + name + "] NOCHECK CONSTRAINT ALL;"); });
+
         /// <summary>
         /// Checks all constrains on for a table back again
         /// </summary>
@@ -545,14 +587,14 @@ namespace DataGenStatistics.classes
                                                 "ON f.OBJECT_ID = fc.constraint_object_id " +
                                                 "INNER JOIN sys.tables t " +
                                                 "ON t.OBJECT_ID = fc.referenced_object_id " +
-                                                "WHERE OBJECT_NAME (f.parent_object_id) = '" + tableName + "'").Rows; 
-                                              /*GetDataTable("SELECT C.COLUMN_NAME " +
-                                                "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS T " +
-                                                "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE C " +
-                                                "ON C.CONSTRAINT_NAME=T.CONSTRAINT_NAME " +
-                                                "WHERE C.TABLE_NAME='" + tableName + "' " +
-                                                "AND T.CONSTRAINT_TYPE='FOREIGN KEY'").Rows; - alternative without straight up reference for primary key*/ 
-            if (rows.Count>0)
+                                                "WHERE OBJECT_NAME (f.parent_object_id) = '" + tableName + "'").Rows;
+            /*GetDataTable("SELECT C.COLUMN_NAME " +
+              "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS T " +
+              "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE C " +
+              "ON C.CONSTRAINT_NAME=T.CONSTRAINT_NAME " +
+              "WHERE C.TABLE_NAME='" + tableName + "' " +
+              "AND T.CONSTRAINT_TYPE='FOREIGN KEY'").Rows; - alternative without straight up reference for primary key*/
+            if (rows.Count > 0)
                 foreach (DataRow row in rows)
                     referenceNames.Add(new string[2] { row.ItemArray[0].ToString(), row.ItemArray[1] + "(" + row.ItemArray[2] + ")" });
             return referenceNames;
@@ -574,6 +616,30 @@ namespace DataGenStatistics.classes
                     columnTypes.Add(row.ItemArray[0].ToString());
                 }
             return columnTypes;
+        }
+
+        /// <summary>
+        /// Creates the new database on the same server the main database is using
+        /// </summary>
+        /// <param name="folderAdress"></param>
+        /// <param name="name"></param>
+        public static void CreateNewDatabase(string folderAdress, string name) => ExecuteSQL(string.Format("CREATE DATABASE [{0}] ON PRIMARY " +
+                                        "(NAME={0}_data, FILENAME = '{1}{0}.mdf') " +
+                                        "LOG ON (NAME={0}_log, FILENAME = '{1}{0}_log.ldf')", name, folderAdress + dbHeadFolder));
+
+        ///<summary>
+        /// Deletes the database going by stated name from the server used by main database
+        /// </summary>
+        /// <param name="name">
+        /// Name of the database dropped
+        /// </param>
+        public static void DropDatabase(string name)
+        {
+            if (GetDataTable("SELECT name FROM master.sys.databases WHERE name = N'" + name + "'").Rows.Count != 0)
+            {
+                ExecuteSQL("EXEC master.dbo.sp_detach_db '" + name + "', 'true'");
+                //ExecuteSQL("DROP DATABASE [" + name + "]");
+            }
         }
     }
 }

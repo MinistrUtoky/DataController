@@ -1,11 +1,17 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Windows.Documents;
+using System.Threading;
+using System.Xml.Linq;
 
+///<summary>
+/// This document is made for declaring all the classes related to sandbox database sourcing the ORM
+/// </summary>
 namespace DataGenStatistics.classes
 {
     /// <summary>
@@ -33,11 +39,11 @@ namespace DataGenStatistics.classes
     public interface ITable
     {
         public int Count { get; }
-        public string Name { get; }
-        public bool[] PrimaryKeys { get; }
-        public string[] ForeignKeys { get; }
-        public string[] ColumnTypes { get; }
-        public string[] ColumnNames { get; }
+        public string Name { get; set; }
+        public bool[] PrimaryKeys { get; set; }
+        public string[] ForeignKeys { get; set; }
+        public string[] ColumnTypes { get; set; }
+        public string[] ColumnNames { get; set; }
         /// <summary>
         /// INSERT INTO thisTableName SELECT ... abstraction
         /// </summary>
@@ -45,10 +51,19 @@ namespace DataGenStatistics.classes
         /// Sub-table rows to insert
         /// </param>
         public void InsertAbstract(List<object> abstractInsertion);
-
+        /// <summary>
+        /// INSERT INTO thisTableName SELECT ... abstraction (But it's table this time around)
+        /// </summary>
+        /// <param name="abstractInsertion">
+        /// Sub-table rows to insert
+        /// </param>
+        public void InsertAbstract(Table<object> abstractInsertion);
         /// <summary>
         /// SELECT *  FROM thisTable abstraction
         /// </summary>
+        /// <returns>
+        /// Returns the copy of this table's contents
+        /// </returns>
         public List<object> SelectAllAbstract();
         /// <summary>
         /// SELECT TOP n FROM thisTable abstraction
@@ -56,6 +71,9 @@ namespace DataGenStatistics.classes
         /// <param name="n">
         /// Number of top rows to select
         /// </param>
+        /// <returns>
+        /// Returns n first items from this table's contents
+        /// </returns>
         public List<object> SelectTopAbstract(int n);
         /// <summary>
         /// Deletion command 1 (deleting top rows) (DELETE TOP n FROM thisTable)
@@ -68,31 +86,70 @@ namespace DataGenStatistics.classes
         /// Deletion command 2 (deleting all rows) (DELETE *  FROM thisTable)
         /// </summary>
         public void DeleteAll();
+        /// <summary>
+        /// Casts all the table's contents against an object type for generalization purposes
+        /// </summary>
+        /// <returns>
+        /// This table's clone, but each item is of object type
+        /// </returns>
         public Table<object> CastAbstract();
     }
 
+    [Serializable]
     /// <summary>
     /// Sandbox table iterator with main comands
     /// </summary>
+    /// <typeparam name="SomeData">
+    /// Data type of table's contents
+    /// </typeparam>
     public class Table<SomeData> : IEnumerator<SomeData>, ITable
     {
         int position = -1;
+        [JsonIgnore]
         public int Count => Rows.Count;
-        public string Name { get; }
-        public bool[] PrimaryKeys { get; }
-        public string[] ForeignKeys { get; }
-        public string[] ColumnNames { get; }
-        public string[] ColumnTypes { get; }
-        public List<SomeData> Rows { get; }
+        public string Name { get; set; }
+        public bool[] PrimaryKeys { get; set; }
+        public string[] ForeignKeys { get; set; }
+        public string[] ColumnNames { get; set; }
+        public string[] ColumnTypes { get; set; }
+        public List<SomeData> Rows { get; set; }
+
+        public Table()
+        {
+            Name = ""; ColumnNames = new string[0]; ColumnTypes = new string[0]; Rows = new List<SomeData>(); PrimaryKeys = new bool[0]; ForeignKeys = new string[0];
+        }
+        /// <summary>
+        /// Constructor of a new empty table with all it's components, including name, column names, primary keys and foreign keys
+        /// </summary>
+        /// <param name="name">
+        /// The name of a new table, mirrors the name in the relational database
+        /// </param>
+        /// <param name="columnNames">
+        /// Names of all the table's columns mirroring those of the relational DB
+        /// </param>
+        /// <param name="columnTypes">
+        /// Types without constraint information according to column names
+        /// </param>
+        /// <param name="primaryKeys">
+        /// Signals if the column with the same index is a primary key 
+        /// </param>
+        /// <param name="foreignKeys">
+        /// Signals if the column with the same index is a primary key 
+        /// </param>
         public Table(string name, string[] columnNames, string[] columnTypes, bool[] primaryKeys, string[] foreignKeys)
         {
             Name = name; ColumnNames = columnNames; ColumnTypes = columnTypes; Rows = new List<SomeData>(); PrimaryKeys = primaryKeys; ForeignKeys = foreignKeys;
         }
+        /// <summary>
+        /// Constructor of an empty table with the name only
+        /// </summary>
+        /// <param name="name">
+        /// Set name of the table
+        /// </param>
         public Table(string name)
         {
             Name = name; ColumnNames = new string[0]; ColumnTypes = new string[0]; Rows = new List<SomeData>(); PrimaryKeys = new bool[0]; ForeignKeys = new string[0];
         }
-        public void InsertAbstract(List<object> abstractInsertion) => Rows.AddRange(abstractInsertion.Cast<SomeData>().ToList());
         /// <summary>
         /// Insertion command 1 (inserting sub-table of rows) (INSERT INTO thisTableName SELECT ...)
         /// </summary>
@@ -107,7 +164,6 @@ namespace DataGenStatistics.classes
         /// Sub-table rows to insert
         /// </param>
         public void Insert(SomeData item) => Rows.Add(item);
-
         /// <summary>
         /// Insertion command 3 (inserting another table's rows) (INSERT INTO thisTableName SELECT * FROM anotherTable)
         /// </summary>
@@ -115,7 +171,6 @@ namespace DataGenStatistics.classes
         /// Table, holding rows to insert
         /// </param>
         public void Insert(Table<SomeData> table) => Rows.AddRange(table.SelectAll());
-        public List<object> SelectTopAbstract(int n) => SelectTop(n).Cast<object>().ToList();
         /// <summary>
         /// Selection command 1 (selecting top rows) (SELECT TOP n FROM thisTable)
         /// </summary>
@@ -123,19 +178,81 @@ namespace DataGenStatistics.classes
         /// Number of top rows to select
         /// </param>
         public List<SomeData> SelectTop(int n) => Rows.GetRange(0, n).ToList();
-        public List<object> SelectAllAbstract() => Rows.ToList().Cast<object>().ToList();
         /// <summary>
         /// Selection command 2 (selecting all rows) (SELECT *  FROM thisTable)
         /// </summary>
         public List<SomeData> SelectAll() => Rows.ToList();
+        /// <summary>
+        /// INSERT INTO thisTableName SELECT ... abstraction
+        /// </summary>
+        /// <param name="abstractInsertion">
+        /// Sub-table rows to insert
+        /// </param>
+        public void InsertAbstract(List<object> abstractInsertion) => Rows.AddRange(abstractInsertion.Cast<SomeData>().ToList());
+        /// <summary>
+        /// INSERT INTO thisTableName SELECT ... abstraction (But it's table this time around)
+        /// </summary>
+        /// <param name="abstractInsertion">
+        /// Sub-table rows to insert
+        /// </param>
+        public void InsertAbstract(Table<object> abstractInsertion) => Rows.AddRange(abstractInsertion.Rows.Cast<SomeData>().ToList());
+        /// <summary>
+        /// SELECT TOP n FROM thisTable abstraction
+        /// </summary>
+        /// <param name="n">
+        /// Number of top rows to select
+        /// </param>
+        public List<object> SelectTopAbstract(int n) => SelectTop(n).Cast<object>().ToList();
+        /// <summary>
+        /// SELECT * FROM thisTable abstraction
+        /// </summary>
+        public List<object> SelectAllAbstract() => Rows.ToList().Cast<object>().ToList();
+        /// <summary>
+        /// Deletion command 1 (deleting top rows) (DELETE TOP n FROM thisTable)
+        /// </summary>
+        /// <param name="n">
+        /// Number of top rows to delete
+        /// </param>
         public void DeleteTop(int n) => Rows.RemoveRange(0, n);
+        /// <summary>
+        /// Deletion command 2 (deleting all rows) (DELETE *  FROM thisTable)
+        /// </summary>
         public void DeleteAll() => Rows.Clear();
+        /// <summary>
+        /// Tries to cast table of .NET objects against another, resulting in table of data of set generic type
+        /// </summary>
+        /// <param name="objectTable">
+        /// Object type table to cast against table of the set generic type 
+        /// </param>
+        /// <returns>
+        /// Returns table of set generic type or sets up an exception
+        /// </returns>
+        public static Table<SomeData> TryCast(Table<object> objectTable)
+        {
+            try
+            {
+                Table<SomeData> table = new Table<SomeData>(objectTable.Name, objectTable.ColumnNames,
+                    objectTable.ColumnTypes, objectTable.PrimaryKeys, objectTable.ForeignKeys);
+                table.Insert(objectTable.Cast<SomeData>().SelectAll());
+                return table;
+            }
+            catch
+            {
+                throw new Exception("Unfitting type of table to cast against");
+            }
+        } 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T1"></typeparam>
+        /// <returns></returns>
         public Table<T1> Cast<T1>()
         {
             Table<T1> table = new Table<T1>(Name, ColumnNames, ColumnTypes, PrimaryKeys, ForeignKeys);
             table.Insert(Rows.Cast<T1>().ToList());
             return table;
         }
+
         public Table<object> CastAbstract() => Cast<object>();
 
         [JsonIgnore]
@@ -161,7 +278,10 @@ namespace DataGenStatistics.classes
             else return false;
         }
     }
-    
+
+    /// <summary>
+    /// Sandbox junction table data tuple
+    /// </summary>
     public struct Junction : Data
     {
         private int id;
@@ -199,6 +319,12 @@ namespace DataGenStatistics.classes
         public Table<SessionData> sessionData { get; set; }
         public Table<LobbyData> lobbyData { get; set; }
 
+        /// <summary>
+        /// ORM database constructor, where the table properties of this class are declared and the new tables in relational database fitting table properties of this class are created
+        /// </summary>
+        /// <param name="main">
+        /// Indexes if the database should de
+        /// </param>
         public Database(bool main=false)
         {
             schema = new List<string>();
@@ -275,18 +401,15 @@ namespace DataGenStatistics.classes
             if (main)
                 DatabaseSandbox.SeedDatabaseToMSQLServer(this);
         }
+
         /// <summary>
         /// Player stats bit representing value of a certain in-game skill
         /// </summary>
         public void Clear()
         {
-            libraryData.DeleteAll();
-            userData.DeleteAll();
-            playerData.DeleteAll();
-            archiveData.DeleteAll();
-            serverData.DeleteAll();
-            sessionData.DeleteAll();
-            lobbyData.DeleteAll();
+            foreach (var property in typeof(Database).GetProperties().ToList())
+                if (property.GetValue(this) is ITable)
+                    ((ITable)property.GetValue(this)).DeleteAll();
         }
         /// <summary>
         /// Addition of another sandbox's values to this sandbox instance 
@@ -298,9 +421,15 @@ namespace DataGenStatistics.classes
         {
             foreach (var property in typeof(Database).GetProperties().ToList())
                 if (property.GetValue(this) is ITable)
-                {
                     ((ITable)property.GetValue(this)).InsertAbstract(((ITable)property.GetValue(anotherDatabase)).SelectAllAbstract());
-                }
+        }
+        public List<Table<object>> TablesList() 
+        {
+            List<Table<object>> tablesList = new List<Table<object>>();
+            foreach (var property in typeof(Database).GetProperties().ToList())
+                if (property.GetValue(this) is ITable)
+                    tablesList.Add(((ITable)property.GetValue(this)).CastAbstract());
+            return tablesList;
         }
     }
     #region Player
@@ -310,11 +439,11 @@ namespace DataGenStatistics.classes
     public struct PlayerData : Data
     {
         private int id;
-        public string nickname;
-        public List<Item> playerInventory;
-        public PlayerStats playerStats;
-        public string playerStatus;
-        public int userID;
+        public string nickname{ get; set; }
+        public List<Item> playerInventory{ get; set; }
+        public PlayerStats playerStats{ get; set; }
+        public string playerStatus{ get; set; }
+        public int userID{ get; set; }
 
         public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
@@ -340,32 +469,25 @@ namespace DataGenStatistics.classes
     /// </summary>
     public struct Item
     {
-        [JsonInclude]
-        public string name;
-        [JsonInclude]
-        public int amount;
+        public string name{ get; set; }
+        public int amount { get; set; }
     }
     /// <summary>
     /// Player data bit representing all player's in-game stats
     /// </summary>
-    public struct PlayerStats
+    public struct PlayerStats 
     {
-        [JsonInclude]
-        public List<string> perks;
-        [JsonInclude]
-        public List<Skill> skills;
-        [JsonInclude]
-        public long totalExperience;
+        public List<string> perks { get; set; }
+        public List<Skill> skills { get; set; }
+        public long totalExperience { get; set; }
     }
     /// <summary>
     /// Player stats bit representing value of a certain in-game skill
     /// </summary>
     public struct Skill
     {
-        [JsonInclude]
-        public string name;
-        [JsonInclude]
-        public int level;
+        public string name { get; set; }
+        public int level { get; set; }
     }
     #endregion
     #region User
@@ -375,14 +497,19 @@ namespace DataGenStatistics.classes
     public struct UserData : Data
     {
         private int id;
-        public string name;
-        public TechnicalSpecifications technicalSpecifications;
-        public string userIP;
-        public UserInfo userInfo;
-        public string userStatus;
-        public int libraryID;
+        public string name { get; set; }
+        public TechnicalSpecifications technicalSpecifications { get; set; }
+        public string userIP { get; set; }
+        public UserInfo userInfo { get; set; }
+        public string userStatus { get; set; }
+        public int libraryID { get; set; }
 
         public int Id { get { return id; } set { id = value; }}
+        public List<string> ToList()
+        {
+            return new List<string>() { id.ToString(), name, JsonSerializer.Serialize(technicalSpecifications), userIP,
+                                            JsonSerializer.Serialize(userInfo), userStatus, libraryID.ToString() };
+        }
         public Data ToData(List<string> data)
         {
             if (data.Count != GetType().GetFields().Count() + GetType().GetProperties().Count()) throw new Exception("Wrong data size format");
@@ -395,28 +522,17 @@ namespace DataGenStatistics.classes
             libraryID = int.Parse(data[6]);
             return this;
         }
-
-        public List<string> ToList()
-        {
-            return new List<string>() { id.ToString(), name, JsonSerializer.Serialize(technicalSpecifications), userIP,
-                                            JsonSerializer.Serialize(userInfo), userStatus, libraryID.ToString() };
-        }
     }
     /// <summary>
     /// User data bit representing tech specifications for user's device
     /// </summary>
     public struct TechnicalSpecifications
     {
-        [JsonInclude]
-        public string OS;
-        [JsonInclude]
-        public string RAM;
-        [JsonInclude]
-        public string GPU;
-        [JsonInclude]
-        public string CPU;
-        [JsonInclude]
-        public string additionalInfo;
+        public string OS { get; set; }
+        public string RAM { get; set; }
+        public string GPU { get; set; }
+        public string CPU { get; set; }
+        public string additionalInfo { get; set; }
     }
     /// <summary>
     /// User data bit representing miscellanious user information
@@ -442,10 +558,10 @@ namespace DataGenStatistics.classes
     public struct LobbyData : Data
     {
         private int id;
-        public int sessionID;
-        public int numberOfParticipants;
-        public DateTime creationDate;
-        public List<int> playerIDs;
+        public int sessionID { get; set; }
+        public int numberOfParticipants { get; set; }
+        public DateTime creationDate { get; set; }
+        public List<int> playerIDs { get; set; }
 
         public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
@@ -473,10 +589,10 @@ namespace DataGenStatistics.classes
     public struct SessionData : Data
     {
         private int id;
-        public int serverID;
-        public DateTime startDateTime;
-        public DateTime endDateTime;
-        public SessionInfo sessionInfo;
+        public int serverID { get; set; }
+        public DateTime startDateTime { get; set; }
+        public DateTime endDateTime { get; set; }
+        public SessionInfo sessionInfo { get; set; }
 
         public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
@@ -518,11 +634,11 @@ namespace DataGenStatistics.classes
     public struct ServerData : Data
     {
         private int id;
-        public int archiveID;
-        public string location;
-        public List<int> sessionIDs;
-        public bool serverAvailability;
-        public int serverCapacity;
+        public int archiveID { get; set; }
+        public string location { get; set; }
+        public List<int> sessionIDs { get; set; }
+        public bool serverAvailability { get; set; }
+        public int serverCapacity { get; set; }
 
         public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)
@@ -551,12 +667,12 @@ namespace DataGenStatistics.classes
     public struct ArchiveData : Data
     {
         private int id;
-        public int libraryID;
-        public DateTime initializationDateTime;
-        public DateTime suspensionDateTime;
-        public int volume;
-        public List<int> serverIDs;
-        public string region;
+        public int libraryID { get; set; }
+        public DateTime initializationDateTime { get; set; }
+        public DateTime suspensionDateTime { get; set; }
+        public int volume { get; set; }
+        public List<int> serverIDs { get; set; }
+        public string region { get; set; }
 
         public int Id { get { return id; } set { id = value; }}
         public Data ToData(List<string> data)

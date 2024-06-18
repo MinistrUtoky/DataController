@@ -9,6 +9,9 @@ using DataGenStatistics.test;
 using ScottPlot;
 using ScottPlot.WPF;
 
+///<summary>
+/// Head file of a WPF application to show investigation plots
+/// </summary>
 namespace DataGenStatistics
 {
     /// <summary>
@@ -22,9 +25,9 @@ namespace DataGenStatistics
         public MainWindow()
         {
             InitializeComponent();
-            SomeAutotests.RunAllTests(); 
             DatabaseSandbox.Instance.Init();
-            RunAllStatistics();
+            SomeAutotests.RunAllTests(); 
+            //RunAllStatistics();
         }
 
         /// <summary>
@@ -108,9 +111,14 @@ namespace DataGenStatistics
                 double[] dataY = result.Value.Select(x => (double)x).ToArray();
                 var pl = plot.Plot.Add.Scatter(dataX, dataY);
                 pl.Label = result.Key;
-                pl.MarkerStyle.Shape = markerShapes[i];
+                if (results.Count > 9)
+                {
+                    pl.MarkerStyle.Shape = markerShapes[i];
+                    pl.MarkerStyle.Size = 8;
+                }
+                else
+                    pl.MarkerStyle = MarkerStyle.None;
                 pl.LinePattern = linePatterns[((int)i / 2) % 4];
-                pl.MarkerStyle.Size = 8;
                 pl.LineWidth = 3;
                 i += 2;
             }

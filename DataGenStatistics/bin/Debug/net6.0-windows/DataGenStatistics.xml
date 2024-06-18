@@ -124,23 +124,47 @@
         </member>
         <member name="M:DataGenStatistics.classes.DatabaseSandbox.MakeDBBackup">
             <summary>
-            Making the database backup into a local JSON text file
+            Making the database backup into a local database
             </summary>
         </member>
-        <member name="M:DataGenStatistics.classes.DatabaseSandbox.RestoreBackupIntoDBDelta(System.String)">
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.RestoreBackupIntoDB">
             <summary>
-            Restoring the database from local JSON text file backup
+            Restoring the database from local database file backup from
             </summary>
         </member>
-        <member name="M:DataGenStatistics.classes.DatabaseSandbox.RestoreBackupIntoDBDeltaFromStandardFolder">
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.MakeDBBackupJson(System.String)">
             <summary>
-            Restoring the database from the standard local JSON text file backup
+            Making the database backup into a local JSON text file (Derpecated since you can't serialize Reflection properties)
+            </summary>
+            <param name="where">
+            Full name of a folder to write database file in
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.MakeDBBackupJsonToStandardLocalFolder">
+            <summary>
+            Making the database backup into a local JSON text file ...\data\dbJsonBackup.json  (Derpecated since you can't serialize Reflection properties)
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.RestoreBackupIntoDBJson(System.String)">
+            <summary>
+            Restoring the database from local JSON text file backup from the stated folder
+            </summary>
+            <param name="fromJsonAdress">
+            Full name of a folder to read database from
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DatabaseSandbox.RestoreBackupIntoDBFromStandardFolderJson">
+            <summary>
+            Restoring the database from the standard local JSON text file backup ...\data\dbJsonBackup.json
             </summary>
         </member>
         <member name="M:DataGenStatistics.classes.DatabaseSandbox.SeedDatabaseToMSQLServer(DataGenStatistics.classes.Database)">
             <summary>
             Creating tables in database matching the sandbox
             </summary>
+            <param name="database">
+            Database sandbox for the seed function to get tables and their column information from
+            </param>
         </member>
         <member name="M:DataGenStatistics.classes.DatabaseSandbox.FetchAllTablesFromSQL">
             <summary>
@@ -195,32 +219,6 @@
             </param>
             <param name="lobbies">
             Number of lobbies to generate
-            </param>
-        </member>
-        <member name="M:DataGenStatistics.classes.DatabaseSandbox.PutDeltaPartIntoDB(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Puts specified numbers of sandbox data tuples into the real database
-            </summary>
-            <param name="libs">
-            Number of libraries to put into the database
-            </param>
-            <param name="users">
-            Number of users to put into the database
-            </param>
-            <param name="players">
-            Number of players to put into the database
-            </param>
-            <param name="archives">
-            Number of archives to put into the database
-            </param>
-            <param name="servers">
-            Number of servers to put into the database
-            </param>
-            <param name="sessions">
-            Number of sessions to put into the database
-            </param>
-            <param name="lobbies">
-            Number of lobbies to put into the database
             </param>
         </member>
         <member name="M:DataGenStatistics.classes.DatabaseSandbox.GetRandomLibraryIds(System.Int32)">
@@ -746,10 +744,21 @@
             Sub-table rows to insert
             </param>
         </member>
+        <member name="M:DataGenStatistics.classes.ITable.InsertAbstract(DataGenStatistics.classes.Table{System.Object})">
+            <summary>
+            INSERT INTO thisTableName SELECT ... abstraction (But it's table this time around)
+            </summary>
+            <param name="abstractInsertion">
+            Sub-table rows to insert
+            </param>
+        </member>
         <member name="M:DataGenStatistics.classes.ITable.SelectAllAbstract">
             <summary>
             SELECT *  FROM thisTable abstraction
             </summary>
+            <returns>
+            Returns the copy of this table's contents
+            </returns>
         </member>
         <member name="M:DataGenStatistics.classes.ITable.SelectTopAbstract(System.Int32)">
             <summary>
@@ -758,6 +767,9 @@
             <param name="n">
             Number of top rows to select
             </param>
+            <returns>
+            Returns n first items from this table's contents
+            </returns>
         </member>
         <member name="M:DataGenStatistics.classes.ITable.DeleteTop(System.Int32)">
             <summary>
@@ -772,10 +784,41 @@
             Deletion command 2 (deleting all rows) (DELETE *  FROM thisTable)
             </summary>
         </member>
-        <member name="T:DataGenStatistics.classes.Table`1">
+        <member name="M:DataGenStatistics.classes.ITable.CastAbstract">
             <summary>
-            Sandbox table iterator with main comands
+            Casts all the table's contents against an object type for generalization purposes
             </summary>
+            <returns>
+            This table's clone, but each item is of object type
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.#ctor(System.String,System.String[],System.String[],System.Boolean[],System.String[])">
+            <summary>
+            Constructor of a new empty table with all it's components, including name, column names, primary keys and foreign keys
+            </summary>
+            <param name="name">
+            The name of a new table, mirrors the name in the relational database
+            </param>
+            <param name="columnNames">
+            Names of all the table's columns mirroring those of the relational DB
+            </param>
+            <param name="columnTypes">
+            Types without constraint information according to column names
+            </param>
+            <param name="primaryKeys">
+            Signals if the column with the same index is a primary key 
+            </param>
+            <param name="foreignKeys">
+            Signals if the column with the same index is a primary key 
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.#ctor(System.String)">
+            <summary>
+            Constructor of an empty table with the name only
+            </summary>
+            <param name="name">
+            Set name of the table
+            </param>
         </member>
         <member name="M:DataGenStatistics.classes.Table`1.Insert(System.Collections.Generic.List{`0})">
             <summary>
@@ -814,10 +857,83 @@
             Selection command 2 (selecting all rows) (SELECT *  FROM thisTable)
             </summary>
         </member>
+        <member name="M:DataGenStatistics.classes.Table`1.InsertAbstract(System.Collections.Generic.List{System.Object})">
+            <summary>
+            INSERT INTO thisTableName SELECT ... abstraction
+            </summary>
+            <param name="abstractInsertion">
+            Sub-table rows to insert
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.InsertAbstract(DataGenStatistics.classes.Table{System.Object})">
+            <summary>
+            INSERT INTO thisTableName SELECT ... abstraction (But it's table this time around)
+            </summary>
+            <param name="abstractInsertion">
+            Sub-table rows to insert
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.SelectTopAbstract(System.Int32)">
+            <summary>
+            SELECT TOP n FROM thisTable abstraction
+            </summary>
+            <param name="n">
+            Number of top rows to select
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.SelectAllAbstract">
+            <summary>
+            SELECT * FROM thisTable abstraction
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.DeleteTop(System.Int32)">
+            <summary>
+            Deletion command 1 (deleting top rows) (DELETE TOP n FROM thisTable)
+            </summary>
+            <param name="n">
+            Number of top rows to delete
+            </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.DeleteAll">
+            <summary>
+            Deletion command 2 (deleting all rows) (DELETE *  FROM thisTable)
+            </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.TryCast(DataGenStatistics.classes.Table{System.Object})">
+            <summary>
+            Tries to cast table of .NET objects against another, resulting in table of data of set generic type
+            </summary>
+            <param name="objectTable">
+            Object type table to cast against table of the set generic type 
+            </param>
+            <returns>
+            Returns table of set generic type or sets up an exception
+            </returns>
+        </member>
+        <member name="M:DataGenStatistics.classes.Table`1.Cast``1">
+            <summary>
+            
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="T:DataGenStatistics.classes.Junction">
+            <summary>
+            Sandbox junction table data tuple
+            </summary>
+        </member>
         <member name="T:DataGenStatistics.classes.Database">
             <summary>
             Sandbox database
             </summary>
+        </member>
+        <member name="M:DataGenStatistics.classes.Database.#ctor(System.Boolean)">
+            <summary>
+            ORM database constructor, where the table properties of this class are declared and the new tables in relational database fitting table properties of this class are created
+            </summary>
+            <param name="main">
+            Indexes if the database should de
+            </param>
         </member>
         <member name="M:DataGenStatistics.classes.Database.Clear">
             <summary>
@@ -938,9 +1054,20 @@
             List of DataTable objects
             </returns>
         </member>
+        <member name="M:DataGenStatistics.classes.DBClass.GetDBConnection(System.String)">
+            <summary>
+            Getting connection to database by it's full filename 
+            </summary>
+            <param name="fullDBFilename">
+            Full name of the database, including path, name of the file and it's extension
+            </param>
+            <returns>
+            Database connection object
+            </returns>
+        </member>
         <member name="M:DataGenStatistics.classes.DBClass.GetDBConnection">
             <summary>
-            Getting connection to database 
+            Getting connection to globally stated database database relative to the project folder 
             </summary>
             <returns>
             Database connection object
@@ -959,7 +1086,7 @@
         </member>
         <member name="M:DataGenStatistics.classes.DBClass.ExecuteSQL(System.String)">
             <summary>
-            Execution of anys SQL command without anything in return
+            Execution of any SQL command using already established connection with a database
             </summary>
             <param name="SQL_Text">
             SQL command text
@@ -992,7 +1119,7 @@
             List of column name strings
             </returns>
         </member>
-        <member name="M:DataGenStatistics.classes.DBClass.DBInsert(System.String,DataGenStatistics.classes.Data)">
+        <member name="M:DataGenStatistics.classes.DBClass.TryDBInsert(System.String,DataGenStatistics.classes.Data)">
             <summary>
             Insertion of an element to the table with specified content
             </summary>
@@ -1008,7 +1135,7 @@
             Insertion of an element to the table with content specified by select statement
             Example: INSERT INTO Table1(column11,column12,column13) SELECT column21, column22, column23 FROM Table2;
             </summary>
-            <param name="tableName">
+            <param name="name">
             Name of the table to insert into
             </param>
             <param name="columnNames">
@@ -1026,7 +1153,7 @@
             Name of the junction table to insert into
             </param>
         </member>
-        <member name="M:DataGenStatistics.classes.DBClass.DBInsertMultiple(System.String,System.Collections.Generic.List{DataGenStatistics.classes.Data})">
+        <member name="M:DataGenStatistics.classes.DBClass.TryDBInsertMultiple(System.String,System.Collections.Generic.List{DataGenStatistics.classes.Data})">
             <summary>
             Insertion of multiple elements to the table with set content
             </summary>
@@ -1222,6 +1349,21 @@
             <param name="tableName">
             Name of a table to get foreign key column names from
             </param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.CreateNewDatabase(System.String,System.String)">
+            <summary>
+            Creates the new database on the same server the main database is using
+            </summary>
+            <param name="folderAdress"></param>
+            <param name="name"></param>
+        </member>
+        <member name="M:DataGenStatistics.classes.DBClass.DropDatabase(System.String)">
+            <summary>
+             Deletes the database going by stated name from the server used by main database
+             </summary>
+             <param name="name">
+             Name of the database dropped
+             </param>
         </member>
         <member name="T:DataGenStatistics.MainWindow">
             <summary>

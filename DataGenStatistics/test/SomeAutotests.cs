@@ -6,6 +6,9 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+///<summary>
+/// In this file there are tests of project's functional loops
+/// </summary>
 namespace DataGenStatistics.test
 {
     internal class SomeAutotests

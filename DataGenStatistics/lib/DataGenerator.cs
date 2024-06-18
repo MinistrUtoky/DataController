@@ -4,6 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
+///<summary>
+/// This document is made for generating different types of data for specific 7 tables constituting the database for DBT university subject 
+/// </summary>
 namespace DataGenStatistics.classes
 {
     /// <summary>

@@ -1,11 +1,19 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using System.Threading;
+using System.Reflection;
+using System.Reflection.Emit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
+///<summary>
+/// This document is made for general interaction between main wpf application and other 3 data-related documents
+/// </summary>
 namespace DataGenStatistics.classes
 {
     /// <summary>
@@ -16,37 +24,148 @@ namespace DataGenStatistics.classes
         public static DatabaseSandbox Instance = new DatabaseSandbox();
         internal Database database = new Database(true);
         internal Database databaseDelta = new Database(false);
-        public const bool junctionTablesRequreid = false;
         /// <summary>
         /// Initiating the sandbox
         /// </summary>
         public void Init()
         {
+            database = new Database(true);
+            databaseDelta = new Database(false);
             //DBClass.DropAll();
             //SeedDatabaseToMSQLServer(database);
             //DBClass.ClearAllTables();
 
             FetchAllTablesFromSQL();
-            MakeDBBackup();
-            //RestoreBackupIntoDBDeltaFromStandardFolder()
+            //MakeDBBackup();//MakeDBBackupJsonToStandardLocalFolder();
+            RestoreBackupIntoDB(); //RestoreBackupIntoDBDeltaFromStandardFolderJson();
         }
 
+        /*
+        private Type CreateDocumentationUsingDatabaseProxy()
+        {
+            AppDomain domain = Thread.GetDomain();
+            AssemblyName asmName = new AssemblyName();
+            asmName.Name = "DatabaseAssembly";
+            AssemblyBuilder myAsmBuilder = domain.DefineDynamicAssembly(asmName,
+                                                            AssemblyBuilderAccess.RunAndSave);
+            // Generate a persistable single-module assembly.
+            ModuleBuilder modBuilder =
+                myAsmBuilder.DefineDynamicModule(asmName.Name, asmName.Name + ".dll");
+
+            TypeBuilder typeBuilder = modBuilder.DefineType("Database",
+                                                            TypeAttributes.Public);
+            FieldBuilder customerNameBldr = typeBuilder.DefineField("someData",
+                                                            typeof(string),
+                                                            FieldAttributes.Private);
+            PropertyBuilder custNamePropBldr = typeBuilder.DefineProperty("SomeData",
+                                                             PropertyAttributes.HasDefault,
+                                                             typeof(string),
+                                                             null);
+            MethodAttributes getSetAttr =
+                MethodAttributes.Public | MethodAttributes.SpecialName |
+                    MethodAttributes.HideBySig;
+            MethodBuilder custNameGetPropMthdBldr =
+                typeBuilder.DefineMethod("get_CustomerName",
+                                           getSetAttr,
+                                           typeof(string),
+                                           Type.EmptyTypes);
+
+            ILGenerator custNameGetIL = custNameGetPropMthdBldr.GetILGenerator();
+
+            custNameGetIL.Emit(OpCodes.Ldarg_0);
+            custNameGetIL.Emit(OpCodes.Ldfld, customerNameBldr);
+            custNameGetIL.Emit(OpCodes.Ret);
+
+            MethodBuilder custNameSetPropMthdBldr =
+                typeBuilder.DefineMethod("set_CustomerName",
+                                           getSetAttr,
+                                           null,
+                                           new Type[] { typeof(string) });
+
+            ILGenerator custNameSetIL = custNameSetPropMthdBldr.GetILGenerator();
+
+            custNameSetIL.Emit(OpCodes.Ldarg_0);
+            custNameSetIL.Emit(OpCodes.Ldarg_1);
+            custNameSetIL.Emit(OpCodes.Stfld, customerNameBldr);
+            custNameSetIL.Emit(OpCodes.Ret);
+
+            custNamePropBldr.SetGetMethod(custNameGetPropMthdBldr);
+            custNamePropBldr.SetSetMethod(custNameSetPropMthdBldr);
+
+            Type retval = typeBuilder.CreateType();
+
+            myAsmBuilder.Save(asmName.Name + ".dll");
+            return retval;
+        }*/
+
         /// <summary>
-        /// Making the database backup into a local JSON text file
+        /// Making the database backup into a local database
         /// </summary>
         private void MakeDBBackup()
         {
-            string dataFolder = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + "\\data\\dbJsonBackup.json";
-            File.WriteAllText(dataFolder, JsonSerializer.Serialize(database));
+            DBClass.DropDatabase(DBClass.dbName.Split(".")[0] + "Copy");
+            if (File.Exists(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + DBClass.dbHeadFolder + DBClass.dbName.Split(".")[0] + "Copy.mdf"))
+                File.Delete(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + DBClass.dbHeadFolder + DBClass.dbName.Split(".")[0] + "Copy.mdf");
+            if (File.Exists(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + DBClass.dbHeadFolder + DBClass.dbName.Split(".")[0] + "Copy_log.ldf"))
+                File.Delete(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + DBClass.dbHeadFolder + DBClass.dbName.Split(".")[0] + "Copy_log.ldf");
+            DBClass.CreateNewDatabase(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName, DBClass.dbName.Split(".")[0] + "Copy");
+            DBClass.dbName = DBClass.dbName.Split(".")[0] + "Copy.mdf";
+            SeedDatabaseToMSQLServer(database);
+            databaseDelta.Add(database);
+            database.Clear();
+            PutDeltaIntoDB();
+            DBClass.dbName = string.Join("", DBClass.dbName.Split("Copy"));
         }
 
         /// <summary>
-        /// Restoring the database from local JSON text file backup
+        /// Restoring the database from local database file backup from
         /// </summary>
-        private void RestoreBackupIntoDBDelta(string fromJsonAdress)
+        private void RestoreBackupIntoDB()
+        {
+            DBClass.dbName = DBClass.dbName.Split(".")[0] + "Copy.mdf";
+            database.Clear();
+            FetchAllTablesFromSQL();
+            DBClass.dbName = string.Join("", DBClass.dbName.Split("Copy"));
+            DBClass.ClearAllTables();
+            databaseDelta.Add(database);
+            database.Clear();
+            DBClass.UncheckAllConstraintsInDB();
+            PutDeltaIntoDB();
+            DBClass.CheckAllConstraintsInDB();
+        }
+
+        /// <summary>
+        /// Making the database backup into a local JSON text file (Derpecated since you can't serialize Reflection properties)
+        /// </summary>
+        /// <param name="where">
+        /// Full name of a folder to write database file in
+        /// </param>
+        private void MakeDBBackupJson(string where) => File.WriteAllText(where, JsonSerializer.Serialize(database));
+
+        /// <summary>
+        /// Making the database backup into a local JSON text file ...\data\dbJsonBackup.json  (Derpecated since you can't serialize Reflection properties)
+        /// </summary>
+        private void MakeDBBackupJsonToStandardLocalFolder() => MakeDBBackupJson(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + DBClass.dbHeadFolder + "dbJsonBackup.json");
+
+        /// <summary>
+        /// Restoring the database from local JSON text file backup from the stated folder
+        /// </summary>
+        /// <param name="fromJsonAdress">
+        /// Full name of a folder to read database from
+        /// </param>
+        private void RestoreBackupIntoDBJson(string fromJsonAdress)
         {
             string jsonContents = File.ReadAllText(fromJsonAdress);
-            Database backup = JsonSerializer.Deserialize<Database>(jsonContents);
+            Database backup = new Database(false);
+            backup = JsonConvert.DeserializeObject<Database>(jsonContents);
+            JObject backupObj = (JObject)JsonConvert.DeserializeObject(jsonContents);
+            backupObj.Properties().Select(p => p.Name).ToList().ForEach(name => {
+                if (typeof(Database).GetProperty(name) == null)
+                    throw new Exception("Database does not contain properties that are in the backup");
+            });
+            foreach (var property in typeof(Database).GetProperties().ToList()) 
+                if (!backupObj.Properties().Select(p => p.Name).ToList().Contains(property.Name))
+                    throw new Exception("Backups database does not contain properties that are in database now");
             DBClass.ClearAllTables();
             SeedDatabaseToMSQLServer(database);
             databaseDelta.Add(backup);
@@ -54,14 +173,17 @@ namespace DataGenStatistics.classes
         }
 
         /// <summary>
-        /// Restoring the database from the standard local JSON text file backup
+        /// Restoring the database from the standard local JSON text file backup ...\data\dbJsonBackup.json
         /// </summary>
-        private void RestoreBackupIntoDBDeltaFromStandardFolder() 
-            => RestoreBackupIntoDBDelta(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + "\\data\\dbJsonBackup.json");
+        private void RestoreBackupIntoDBFromStandardFolderJson() 
+            => RestoreBackupIntoDBJson(Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName + DBClass.dbHeadFolder + "dbJsonBackup.json");
 
         /// <summary>
         /// Creating tables in database matching the sandbox
         /// </summary>
+        /// <param name="database">
+        /// Database sandbox for the seed function to get tables and their column information from
+        /// </param>
         public static void SeedDatabaseToMSQLServer(Database database)
         {
             foreach (var property in typeof(Database).GetProperties().ToList())
@@ -75,9 +197,10 @@ namespace DataGenStatistics.classes
                         else
                             columnTypesModified.Add(table.ColumnTypes[i]);
                     }
-                    DBClass.CreateNewTable(table.Name, table.ColumnNames.ToList(), columnTypesModified, table.ForeignKeys.ToList(), junctionTablesRequreid);
+                    DBClass.CreateNewTable(table.Name, table.ColumnNames.ToList(), columnTypesModified, table.ForeignKeys.ToList(), DBClass.junctionTablesRequired);
                 }
         }
+
         /// <summary>
         /// Initiation of a database to data sandbox data fetch for all tables
         /// </summary>
@@ -99,39 +222,24 @@ namespace DataGenStatistics.classes
         /// </param>
         private void FetchDataFromTable(string tableName)
         {
-            /*
             foreach (var property in typeof(Database).GetProperties().ToList())
                 if (property.GetValue(database) is ITable)
-                    if (tableName == ((ITable)property.GetValue(database)).Name)
+                    if (tableName.ToLower() == ((ITable)property.GetValue(database)).Name.ToLower())
                     {
-                        Table<Data> table = ((ITable)property.GetValue(database)).CastAbstract().Cast<Data>();
+                        Table<object> table = ((ITable)property.GetValue(database)).CastAbstract();
                         Type tableItemType = property.PropertyType.GetGenericArguments()[0];
-                        Table<Data> endTable = FetchDataOfType(tableName, table, tableItemType);
-
-                        property.SetValue(database, endTable, );
+                        Table<object> endTable = FetchDataOfType(tableName, table, tableItemType);
+                        MethodInfo methodInfo = property.PropertyType.GetMethod("TryCast", BindingFlags.Public | BindingFlags.Static);
+                        var finalTable = methodInfo.Invoke(null, new object[] { endTable });
+                        property.SetValue(database, finalTable);
+                        (property.GetValue(database) as ITable).InsertAbstract(endTable);
                     }
-            Trace.WriteLine(database.libraryData.Count);*/
-            if (tableName == database.libraryData.Name)
-                database.libraryData = FetchDataOfType<LibraryData>(tableName, database.libraryData, typeof(LibraryData));
-            else if (tableName == database.userData.Name)
-                database.userData = FetchDataOfType<UserData>(tableName, database.userData, typeof(UserData));
-            else if (tableName == database.playerData.Name)
-                database.playerData = FetchDataOfType<PlayerData>(tableName, database.playerData, typeof(PlayerData));
-            else if (tableName == database.archiveData.Name)
-                database.archiveData = FetchDataOfType<ArchiveData>(tableName, database.archiveData, typeof(ArchiveData));
-            else if (tableName == database.serverData.Name)
-                database.serverData = FetchDataOfType<ServerData>(tableName, database.serverData, typeof(ServerData));
-            else if (tableName == database.sessionData.Name)
-                database.sessionData = FetchDataOfType<SessionData>(tableName, database.sessionData, typeof(SessionData));
-            else if (tableName == database.lobbyData.Name)
-                database.lobbyData = FetchDataOfType<LobbyData>(tableName, database.lobbyData, typeof(LobbyData));
             if (tableName.Contains(DBClass.junctionTableEnding))
             {
                 Table<Junction> newJunctionTable = new Table<Junction>(tableName);
                 FetchDataOfType<Junction>(tableName, newJunctionTable, typeof(Junction));
                 database.junctionTables.Add(newJunctionTable);
             }
-            //else Trace.WriteLine("A junction table indexed");
         }
         /// <summary>
         /// Initiation of a database to data sandbox data fetch from a specified table to a specified sandbox type
@@ -147,21 +255,20 @@ namespace DataGenStatistics.classes
             List<string> columnNames = DBClass.GetColumnNames(tableName),
                          columnTypes = DBClass.GetColumnTypes(tableName);
             bool[] primaryKeyColumns = new bool[columnNames.Count];
-            string[] foreignKeyColumns = new string[columnNames.Count];
-            for (int i = 0; i < columnNames.Count; i++) foreignKeyColumns[i] = "";
+            string[] foreignKeyColumns = new string[columnNames.Count]; for (int i = 0; i < foreignKeyColumns.Length; i++) foreignKeyColumns[i] = "";
             foreach (string primaryKey in DBClass.GetPrimaryKeys(tableName))
                 primaryKeyColumns[columnNames.IndexOf(primaryKey)] = true;
             List<string[]> foreignKeys = DBClass.GetForeignKeys(tableName);
             for (int i = 0; i < foreignKeys.Count; i++)
                 foreignKeyColumns[columnNames.IndexOf(foreignKeys[i][0])] = foreignKeys[i][1];
             whereDataIsGoing = new Table<T>(tableName, columnNames.ToArray(), columnTypes.ToArray(), primaryKeyColumns, foreignKeyColumns);
+
             DataTable table = DBClass.GetDataTableByName(tableName);
             foreach (DataRow row in table.Rows)
             {
                 List<string> rowData = new List<string>();
                 foreach (object? item in row.ItemArray)
                 {
-                    //Trace.WriteLine(item?.ToString());
                     if (item.GetType() == typeof(Byte[]))
                         rowData.Add(BitConverter.ToBoolean((Byte[])item).ToString());
                     else
@@ -177,21 +284,39 @@ namespace DataGenStatistics.classes
         /// </summary>
         public void PutDeltaIntoDB()
         {
-            foreach (var property in typeof(Database).GetProperties().ToList())
+            database.Add(databaseDelta);
+            bool perseveranceFlag = true;
+            Queue<PropertyInfo> commitQueue = new Queue<PropertyInfo>();
+            typeof(Database).GetProperties().ToList().ForEach(p => commitQueue.Enqueue(p));
+            while (perseveranceFlag|| commitQueue.Count > 0)
+            {
+                perseveranceFlag = false;
+                PropertyInfo property = commitQueue.Dequeue();
+                Trace.WriteLine(commitQueue.Count);
                 if (property.GetValue(database) is ITable)
                 {
                     List<Data> abstractRows = ((ITable)property.GetValue(databaseDelta)).SelectAllAbstract().Cast<Data>().ToList();
-                    DBClass.DBInsertMultiple(((ITable)property.GetValue(database)).Name, abstractRows);
-                    if (junctionTablesRequreid)
-                        foreach (Data data1 in abstractRows)
-                            foreach (Data data2 in ((ITable)property.GetValue(database)).SelectAllAbstract().Cast<Data>().ToList())
-                                if (!data1.GetType().Equals(data2.GetType()))
-                                    for (int i = 0; i < database.junctionTables.Count; i++)
-                                        database.junctionTables[i].Insert(new Junction() { firstTableId = data1.Id, secondTableId = data2.Id });
+                    abstractRows.ForEach(row => Trace.WriteLine(string.Join("", row.ToList())));
+                    if (DBClass.TryDBInsertMultiple(((ITable)property.GetValue(database)).Name, abstractRows))
+                    {
+                        if (DBClass.junctionTablesRequired)
+                            foreach (Data data1 in abstractRows)
+                                foreach (Data data2 in ((ITable)property.GetValue(database)).SelectAllAbstract().Cast<Data>().ToList())
+                                    if (!data1.GetType().Equals(data2.GetType()))
+                                        for (int i = 0; i < database.junctionTables.Count; i++)
+                                            database.junctionTables[i].Insert(new Junction() { firstTableId = data1.Id, secondTableId = data2.Id });
+                    }
+                    else
+                    {
+                        commitQueue.Enqueue(property);
+                        perseveranceFlag = true;
+                    }
                 }
-            database.Add(databaseDelta);
+                else perseveranceFlag = true;
+            }
             databaseDelta.Clear();
         }
+
         /// <summary>
         /// Generates and puts specified numbers of new data tuples into the sandbox
         /// </summary>
@@ -226,62 +351,7 @@ namespace DataGenStatistics.classes
             databaseDelta.serverData.Insert(GenerateServers(servers));
             databaseDelta.sessionData.Insert(GenerateSessions(sessions));
             databaseDelta.lobbyData.Insert(GenerateLobbies(lobbies));
-
-        }
-        /// <summary>
-        /// Puts specified numbers of sandbox data tuples into the real database
-        /// </summary>
-        /// <param name="libs">
-        /// Number of libraries to put into the database
-        /// </param>
-        /// <param name="users">
-        /// Number of users to put into the database
-        /// </param>
-        /// <param name="players">
-        /// Number of players to put into the database
-        /// </param>
-        /// <param name="archives">
-        /// Number of archives to put into the database
-        /// </param>
-        /// <param name="servers">
-        /// Number of servers to put into the database
-        /// </param>
-        /// <param name="sessions">
-        /// Number of sessions to put into the database
-        /// </param>
-        /// <param name="lobbies">
-        /// Number of lobbies to put into the database
-        /// </param>
-        public void PutDeltaPartIntoDB(int libs = 0, int users = 0, int players = 0, int archives = 0, int servers = 0,
-                                            int sessions = 0, int lobbies = 0)
-        {
-            if (libs > databaseDelta.libraryData.Count || users > databaseDelta.userData.Count ||
-                players > databaseDelta.playerData.Count || archives > databaseDelta.archiveData.Count ||
-                servers > databaseDelta.serverData.Count || sessions > databaseDelta.sessionData.Count ||
-                lobbies > databaseDelta.lobbyData.Count)
-                throw new Exception("Length of database delta's part exceeds that of the delta itself");
-            database.libraryData.Insert(databaseDelta.libraryData.SelectTop(libs));
-            database.userData.Insert(databaseDelta.userData.SelectTop(users));
-            database.playerData.Insert(databaseDelta.playerData.SelectTop(players));
-            database.archiveData.Insert(databaseDelta.archiveData.SelectTop(archives));
-            database.serverData.Insert(databaseDelta.serverData.SelectTop(servers));
-            database.sessionData.Insert(databaseDelta.sessionData.SelectTop(sessions));
-            database.lobbyData.Insert(databaseDelta.lobbyData.SelectTop(lobbies));
-            DBClass.DBInsertMultiple(database.libraryData.Name, databaseDelta.libraryData.SelectTop(libs).Cast<Data>().ToList());
-            DBClass.DBInsertMultiple(database.userData.Name, databaseDelta.userData.SelectTop(users).Cast<Data>().ToList());
-            DBClass.DBInsertMultiple(database.playerData.Name, databaseDelta.playerData.SelectTop(players).Cast<Data>().ToList());
-            DBClass.DBInsertMultiple(database.archiveData.Name, databaseDelta.archiveData.SelectTop(archives).Cast<Data>().ToList());
-            DBClass.DBInsertMultiple(database.serverData.Name, databaseDelta.serverData.SelectTop(servers).Cast<Data>().ToList());
-            DBClass.DBInsertMultiple(database.sessionData.Name, databaseDelta.sessionData.SelectTop(sessions).Cast<Data>().ToList());
-            DBClass.DBInsertMultiple(database.lobbyData.Name, databaseDelta.lobbyData.SelectTop(lobbies).Cast<Data>().ToList());
-            databaseDelta.libraryData.DeleteTop(libs);
-            databaseDelta.userData.DeleteTop(users);
-            databaseDelta.playerData.DeleteTop(players);
-            databaseDelta.archiveData.DeleteTop(archives);
-            databaseDelta.serverData.DeleteTop(servers);
-            databaseDelta.sessionData.DeleteTop(sessions);
-            databaseDelta.lobbyData.DeleteTop(lobbies);
-        }
+        }       
 
         #region Library
         /// <summary>
@@ -326,7 +396,7 @@ namespace DataGenStatistics.classes
             int newId;
 
             if (databaseDelta.libraryData.Count == 0)
-                newId = DBClass.GetNextId(database.libraryData.Name) + 1;
+                newId = database.libraryData.Count == 0 ? 1 : DBClass.GetNextId(database.libraryData.Name) + 1;
             else
                 newId = databaseDelta.libraryData.Rows.Max(l => l.Id) + 1;
             newLibrary.Id = newId;
@@ -387,15 +457,16 @@ namespace DataGenStatistics.classes
             LibraryData master = tb.Find(library => library.Id == libraryID);
             int newId;
             if (databaseDelta.userData.Count == 0)
-                newId = DBClass.GetNextId(database.archiveData.Name) + 1;
+                newId = database.userData.Count == 0 ? 1 : DBClass.GetNextId(database.userData.Name) + 1;
             else
                 newId = databaseDelta.userData.Rows.Max(l => l.Id) + 1;
             newUser.Id = newId;
             newUser.name = DataGenerator.GenerateUsername(newId);
             newUser.userIP = DataGenerator.GenerateUserIP();
             newUser.technicalSpecifications = DataGenerator.GenerateTechnicalSpecifications();
-            newUser.userInfo = DataGenerator.GenerateUserInfo();
-            newUser.userInfo.registrationDateTime = DataGenerator.GenerateDatetimeAfter(database.libraryData.Rows.Find(library => library.Id == libraryID).creationDate);
+            UserInfo uInfo = DataGenerator.GenerateUserInfo();
+            uInfo.registrationDateTime = DataGenerator.GenerateDatetimeAfter(database.libraryData.Rows.Find(library => library.Id == libraryID).creationDate);
+            newUser.userInfo = uInfo;
             newUser.userStatus = DataGenerator.GenerateUserStatus();
             newUser.libraryID = libraryID;
             master.usersInfo.userIDs.Add(newUser.Id);
@@ -445,7 +516,7 @@ namespace DataGenStatistics.classes
             PlayerData newPlayer = new PlayerData();
             int newId;
             if (databaseDelta.playerData.Count == 0)
-                newId = DBClass.GetNextId(database.playerData.Name) + 1;
+                newId = database.playerData.Count == 0 ? 1 : DBClass.GetNextId(database.playerData.Name) + 1;
             else
                 newId = databaseDelta.playerData.Rows.Max(l => l.Id) + 1;
             newPlayer.Id = newId;
@@ -502,7 +573,7 @@ namespace DataGenStatistics.classes
             LibraryData master = tb.Find(library => library.Id == libraryID);
             int newId;
             if (databaseDelta.archiveData.Count == 0)
-                newId = DBClass.GetNextId(database.archiveData.Name) + 1;
+                newId = database.archiveData.Count == 0 ? 1 : DBClass.GetNextId(database.archiveData.Name) + 1;
             else
                 newId = databaseDelta.archiveData.Rows.Max(l => l.Id) + 1;
 
@@ -570,7 +641,7 @@ namespace DataGenStatistics.classes
             }
             int newId;
             if (databaseDelta.serverData.Count == 0)
-                newId = DBClass.GetNextId(database.serverData.Name) + 1;
+                newId = database.serverData.Count == 0 ? 1 : DBClass.GetNextId(database.serverData.Name) + 1;
             else
                 newId = databaseDelta.serverData.Rows.Max(l => l.Id) + 1;
             newServer.Id = newId;
@@ -638,7 +709,7 @@ namespace DataGenStatistics.classes
             }
             int newId;
             if (databaseDelta.sessionData.Count == 0)
-                newId = DBClass.GetNextId(database.sessionData.Name) + 1;
+                newId = database.sessionData.Count == 0 ? 1 : DBClass.GetNextId(database.sessionData.Name) + 1;
             else
                 newId = databaseDelta.sessionData.Rows.Max(l => l.Id) + 1;
             newSession.Id = newId;
@@ -695,7 +766,7 @@ namespace DataGenStatistics.classes
             SessionData master = tb.Find(session => session.Id == sessionID);
             int newId;
             if (databaseDelta.lobbyData.Count == 0)
-                newId = DBClass.GetNextId(database.lobbyData.Name) + 1;
+                newId = database.lobbyData.Count == 0 ? 1 : DBClass.GetNextId(database.lobbyData.Name) + 1;
             else
                 newId = databaseDelta.lobbyData.Rows.Max(l => l.Id) + 1;
             newLobby.Id = newId;

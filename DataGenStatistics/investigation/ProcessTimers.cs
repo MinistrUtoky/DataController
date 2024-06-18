@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+///<summary>
+/// Here are general functions for counting the time required to complete a process or several processes
+/// </summary>
 namespace DataGenStatistics.investigation
 {
     /// <summary>

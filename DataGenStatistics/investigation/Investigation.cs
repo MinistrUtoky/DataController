@@ -5,12 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+///<summary>
+/// Main file for investigations where information about timings for different processes is calculated and packaged for plotting
+/// </summary>
 namespace DataGenStatistics.investigation
 {
     public static class Investigation
     {
         public const int maxSteps = 10,
-                  numberOfRowsPerStep = 5;
+                  numberOfRowsPerStep = 1;
         /// <summary>
         /// Calculates generation time result data for globally given numbers of rows
         /// Gets plotted with Plot()
@@ -251,31 +254,31 @@ namespace DataGenStatistics.investigation
             foreach (int n in numberOfRows)
             {
                 libraryDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.libraryData.Name, DatabaseSandbox.Instance.databaseDelta.libraryData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.libraryData.Name, DatabaseSandbox.Instance.databaseDelta.libraryData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.libraryData.DeleteTop(n);
                 });
                 userDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.userData.Name, DatabaseSandbox.Instance.databaseDelta.userData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.userData.Name, DatabaseSandbox.Instance.databaseDelta.userData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.userData.DeleteTop(n);
                 });
                 playerDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.playerData.Name, DatabaseSandbox.Instance.databaseDelta.playerData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.playerData.Name, DatabaseSandbox.Instance.databaseDelta.playerData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.playerData.DeleteTop(n);
                 });
                 archiveDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.archiveData.Name, DatabaseSandbox.Instance.databaseDelta.archiveData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.archiveData.Name, DatabaseSandbox.Instance.databaseDelta.archiveData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.archiveData.DeleteTop(n);
                 });
                 serverDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.serverData.Name, DatabaseSandbox.Instance.databaseDelta.serverData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.serverData.Name, DatabaseSandbox.Instance.databaseDelta.serverData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.serverData.DeleteTop(n);
                 });
                 sessionDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.sessionData.Name, DatabaseSandbox.Instance.databaseDelta.sessionData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.sessionData.Name, DatabaseSandbox.Instance.databaseDelta.sessionData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.sessionData.DeleteTop(n);
                 });
                 lobbyDelegates.Add(async () => {
-                    DBClass.DBInsertMultiple(DatabaseSandbox.Instance.database.lobbyData.Name, DatabaseSandbox.Instance.databaseDelta.lobbyData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
+                    DBClass.TryDBInsertMultiple(DatabaseSandbox.Instance.database.lobbyData.Name, DatabaseSandbox.Instance.databaseDelta.lobbyData.SelectAll().Cast<Data>().ToList().GetRange(0, n));
                     DatabaseSandbox.Instance.databaseDelta.lobbyData.DeleteTop(n);
                 });
             }
