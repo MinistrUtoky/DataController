@@ -37,22 +37,21 @@ namespace DataGenStatistics.classes
 
             FetchAllTablesFromSQL();
             //MakeDBBackup();//MakeDBBackupJsonToStandardLocalFolder();
-            RestoreBackupIntoDB(); //RestoreBackupIntoDBDeltaFromStandardFolderJson();
+            //RestoreBackupIntoDB(); //RestoreBackupIntoDBDeltaFromStandardFolderJson();
         }
-
         /*
-        private Type CreateDocumentationUsingDatabaseProxy()
+        private Type CreateNewDataType()
         {
             AppDomain domain = Thread.GetDomain();
             AssemblyName asmName = new AssemblyName();
-            asmName.Name = "DatabaseAssembly";
+            asmName.Name = "DataAssembly";
             AssemblyBuilder myAsmBuilder = domain.DefineDynamicAssembly(asmName,
                                                             AssemblyBuilderAccess.RunAndSave);
             // Generate a persistable single-module assembly.
             ModuleBuilder modBuilder =
                 myAsmBuilder.DefineDynamicModule(asmName.Name, asmName.Name + ".dll");
 
-            TypeBuilder typeBuilder = modBuilder.DefineType("Database",
+            TypeBuilder typeBuilder = modBuilder.DefineType("Data",
                                                             TypeAttributes.Public);
             FieldBuilder customerNameBldr = typeBuilder.DefineField("someData",
                                                             typeof(string),
@@ -96,8 +95,8 @@ namespace DataGenStatistics.classes
 
             myAsmBuilder.Save(asmName.Name + ".dll");
             return retval;
-        }*/
-
+        }
+        */
         /// <summary>
         /// Making the database backup into a local database
         /// </summary>
@@ -126,12 +125,11 @@ namespace DataGenStatistics.classes
             database.Clear();
             FetchAllTablesFromSQL();
             DBClass.dbName = string.Join("", DBClass.dbName.Split("Copy"));
-            DBClass.ClearAllTables();
+            DBClass.DropAll();
+            SeedDatabaseToMSQLServer(database);
             databaseDelta.Add(database);
             database.Clear();
-            DBClass.UncheckAllConstraintsInDB();
             PutDeltaIntoDB();
-            DBClass.CheckAllConstraintsInDB();
         }
 
         /// <summary>
@@ -292,11 +290,9 @@ namespace DataGenStatistics.classes
             {
                 perseveranceFlag = false;
                 PropertyInfo property = commitQueue.Dequeue();
-                Trace.WriteLine(commitQueue.Count);
-                if (property.GetValue(database) is ITable)
+                if (property.GetValue(databaseDelta) is ITable)
                 {
                     List<Data> abstractRows = ((ITable)property.GetValue(databaseDelta)).SelectAllAbstract().Cast<Data>().ToList();
-                    abstractRows.ForEach(row => Trace.WriteLine(string.Join("", row.ToList())));
                     if (DBClass.TryDBInsertMultiple(((ITable)property.GetValue(database)).Name, abstractRows))
                     {
                         if (DBClass.junctionTablesRequired)
@@ -437,7 +433,8 @@ namespace DataGenStatistics.classes
         public List<UserData> GenerateUsers(int amount)
         {
             List<UserData> users = new List<UserData>();
-            for (int i = 0; i < amount; i++) users.Add(GenerateUser(DataGenerator.RandomMaster<LibraryData>(database.libraryData.Rows, databaseDelta.libraryData.Rows).Id));
+            for (int i = 0; i < amount; i++) 
+                users.Add(GenerateUser(DataGenerator.RandomMaster<LibraryData>(database.libraryData.Rows, databaseDelta.libraryData.Rows).Id));
             return users;
         }
         /// <summary>
@@ -553,7 +550,8 @@ namespace DataGenStatistics.classes
         public List<ArchiveData> GenerateArchives(int amount)
         {
             List<ArchiveData> archives = new List<ArchiveData>();
-            for (int i = 0; i < amount; i++) archives.Add(GenerateArchive(DataGenerator.RandomMaster<LibraryData>(database.libraryData.Rows, databaseDelta.libraryData.Rows).Id));
+            for (int i = 0; i < amount; i++) 
+                archives.Add(GenerateArchive(DataGenerator.RandomMaster<LibraryData>(database.libraryData.Rows, databaseDelta.libraryData.Rows).Id));
             return archives;
         }
         /// <summary>

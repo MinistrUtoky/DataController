@@ -27,7 +27,7 @@ namespace DataGenStatistics
             InitializeComponent();
             DatabaseSandbox.Instance.Init();
             SomeAutotests.RunAllTests(); 
-            //RunAllStatistics();
+            RunAllStatistics();
         }
 
         /// <summary>
@@ -35,41 +35,53 @@ namespace DataGenStatistics
         /// </summary>
         public void RunAllStatistics()
         {
+            List<string> investigatedTables = new List<string>() {
+                DatabaseSandbox.Instance.database.libraryData.Name, 
+                DatabaseSandbox.Instance.database.userData.Name, 
+                DatabaseSandbox.Instance.database.playerData.Name,
+                DatabaseSandbox.Instance.database.archiveData.Name, 
+                DatabaseSandbox.Instance.database.serverData.Name,
+                DatabaseSandbox.Instance.database.sessionData.Name, 
+                DatabaseSandbox.Instance.database.lobbyData.Name
+            };
+            
             int[] numberOfRows = Enumerable.Range(1, Investigation.maxSteps).Select(a => a * Investigation.numberOfRowsPerStep).ToArray();
-            Plot(GeneratorTimings, "Time required for generation",
-            numberOfRows, Investigation.PlotGenerators(numberOfRows), "generator_timings.png");
+            Plot(GeneratorTimings, "Time required for generation of some tables",
+            numberOfRows, Investigation.PlotGenerators(investigatedTables.GetRange(0,3), numberOfRows), "generator_timings.png");
+            Plot(GeneratorTimings2, "Time required for generation of some other tables",
+            numberOfRows, Investigation.PlotGenerators(investigatedTables.GetRange(3, 4), numberOfRows), "generator_timings.png");
 
             int oddOrEvenIdSelection = new Random().Next(0, 2);
             int randomEndingIdSelection = new Random().Next(0, 10);
             Plot(SelectQueryTimings, "Time required for selection",
-                 numberOfRows, Investigation.PlotSelectQueries(numberOfRows, ""), "selection_timings.png");
+                 numberOfRows, Investigation.PlotSelectQueries(investigatedTables, numberOfRows, ""), "selection_timings.png");
             Plot(FunnySelectQueryTimings, "Time reqired for selection where id%2 = " + oddOrEvenIdSelection,
-                numberOfRows, Investigation.PlotSelectQueries(numberOfRows, "where id%2 = " + oddOrEvenIdSelection), "selection_oddeven_id_timings.png");
+                numberOfRows, Investigation.PlotSelectQueries(investigatedTables, numberOfRows, "where id%2 = " + oddOrEvenIdSelection), "selection_oddeven_id_timings.png");
             Plot(FunnierSelectQueryTimings, "Time reqired for selection where id ends with " + randomEndingIdSelection,
-                numberOfRows, Investigation.PlotSelectQueries(numberOfRows, "WHERE id LIKE '_" + randomEndingIdSelection + "'"), "selection_id_ends_with_randnum_timings.png");
+                numberOfRows, Investigation.PlotSelectQueries(investigatedTables, numberOfRows, "WHERE id LIKE '_" + randomEndingIdSelection + "'"), "selection_id_ends_with_randnum_timings.png");
 
             int oddOrEvenIdSecondSelection = new Random().Next(0, 2);
             int randomDigitInIdSelection = new Random().Next(0, 10);
             Plot(MegafunnySelectQueryTimings, "Time reqired for selection where id % 2 = " + oddOrEvenIdSecondSelection + " and id contains " + randomDigitInIdSelection,
-                 numberOfRows, Investigation.PlotSelectQueries(numberOfRows, "WHERE id%2=" + oddOrEvenIdSecondSelection + " AND id LIKE '%" + randomDigitInIdSelection + "%'"), "selection_oddeven_id_containing_smth.png");
+                 numberOfRows, Investigation.PlotSelectQueries(investigatedTables, numberOfRows, "WHERE id%2=" + oddOrEvenIdSecondSelection + " AND id LIKE '%" + randomDigitInIdSelection + "%'"), "selection_oddeven_id_containing_smth.png");
 
             int oddOrEvenIdInsertion = new Random().Next(0, 2);
             int randomEndingIdInsertion = new Random().Next(0, 10);
             Plot(InsertQueryTimings, "Time required for insertion",
-                 numberOfRows, Investigation.PlotInsertQueries(numberOfRows), "insertion_timings2.png");
+                 numberOfRows, Investigation.PlotInsertQueries(investigatedTables, numberOfRows), "insertion_timings2.png");
             Plot(FunnyInsertQueryTimings, "Time required for insertion of row duplicates where id is " + (oddOrEvenIdInsertion==0? "even" : "odd"),
-                 numberOfRows, Investigation.PlotInsertQueries(numberOfRows, true, "WHERE id%2=" + oddOrEvenIdInsertion), "oddeven_id_copies_insertion_timing2.png");
+                 numberOfRows, Investigation.PlotInsertQueries(investigatedTables, numberOfRows, true, "WHERE id%2=" + oddOrEvenIdInsertion), "oddeven_id_copies_insertion_timing2.png");
             Plot(FunnierInsertQueryTimings, "Time required for insertion of row duplicates from same table with ids ending with " + randomEndingIdInsertion,
-                 numberOfRows, Investigation.PlotInsertQueries(numberOfRows, true, "WHERE id%10=" + randomEndingIdInsertion), "random_ending_id_cpies_insertion_timings2.png");
+                 numberOfRows, Investigation.PlotInsertQueries(investigatedTables, numberOfRows, true, "WHERE id%10=" + randomEndingIdInsertion), "random_ending_id_cpies_insertion_timings2.png");
             
             int oddOrEvenIdRemoval = new Random().Next(0, 2);
             int randomEndingIdRemoval = new Random().Next(0, 10);
             Plot(RemoveQueryTimings, "Time required for removal",
-                 numberOfRows, Investigation.PlotRemoveQueries(numberOfRows, ""), "removal_timings.png");
+                 numberOfRows, Investigation.PlotRemoveQueries(investigatedTables, numberOfRows, ""), "removal_timings.png");
             Plot(FunnyRemoveQueryTimings, "Time required for removal where id%2=" + oddOrEvenIdRemoval,
-                 numberOfRows, Investigation.PlotRemoveQueries(numberOfRows, "id%2=" + oddOrEvenIdRemoval), "removal_oddeven_id_timings.png");
+                 numberOfRows, Investigation.PlotRemoveQueries(investigatedTables, numberOfRows, "id%2=" + oddOrEvenIdRemoval), "removal_oddeven_id_timings.png");
             Plot(FunnierRemoveQueryTimings, "Time required for removal where id ends with " + randomEndingIdRemoval,
-                 numberOfRows, Investigation.PlotRemoveQueries(numberOfRows, "id LIKE '_" + randomEndingIdRemoval + "'"), "removal_id_ends_with_randnum_timings.png");
+                 numberOfRows, Investigation.PlotRemoveQueries(investigatedTables, numberOfRows, "id LIKE '_" + randomEndingIdRemoval + "'"), "removal_id_ends_with_randnum_timings.png");
 
 
             /*Plot(UpdateQueryTimings, "Time required for update",

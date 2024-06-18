@@ -421,7 +421,7 @@ namespace DataGenStatistics.classes
         {
             foreach (var property in typeof(Database).GetProperties().ToList())
                 if (property.GetValue(this) is ITable)
-                    ((ITable)property.GetValue(this)).InsertAbstract(((ITable)property.GetValue(anotherDatabase)).SelectAllAbstract());
+                    ((ITable)property.GetValue(this)).InsertAbstract(((ITable)property.GetValue(anotherDatabase)).SelectAllAbstract());           
         }
         public List<Table<object>> TablesList() 
         {

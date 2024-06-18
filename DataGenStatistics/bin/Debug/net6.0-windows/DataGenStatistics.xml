@@ -22,7 +22,7 @@
             Application Entry Point.
             </summary>
         </member>
-        <member name="M:DataGenStatistics.investigation.Investigation.PlotGenerators(System.Int32[])">
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotGenerators(System.Collections.Generic.List{System.String},System.Int32[])">
             <summary>
             Calculates generation time result data for globally given numbers of rows
             Gets plotted with Plot()
@@ -31,7 +31,7 @@
             Number of rows to generate  
             </param>
         </member>
-        <member name="M:DataGenStatistics.investigation.Investigation.PlotSelectQueries(System.Int32[],System.String)">
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotSelectQueries(System.Collections.Generic.List{System.String},System.Int32[],System.String)">
             <summary>
             Calculates selection time result data for globally given numbers of rows
             Gets plotted with Plot()
@@ -43,7 +43,7 @@
             Selection condition (Example: WHERE a=b)
             </param>
         </member>
-        <member name="M:DataGenStatistics.investigation.Investigation.PlotInsertQueries(System.Int32[],System.Boolean,System.String)">
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotInsertQueries(System.Collections.Generic.List{System.String},System.Int32[],System.Boolean,System.String)">
             <summary>
             Calculates insertion time result data for globally given numbers of rows;
             Gets plotted with Plot()
@@ -55,7 +55,7 @@
             *tableName* gets inserted automatically at the end of quiery if selectStatement=true
             </param>
         </member>
-        <member name="M:DataGenStatistics.investigation.Investigation.PlotInsertQueries(System.Int32[])">
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotInsertQueries(System.Collections.Generic.List{System.String},System.Int32[])">
             <summary>
             Calculates insertion time result data for globally given numbers of rows;
             Gets plotted with Plot()
@@ -64,7 +64,7 @@
             Number of rows to insert  
             </param>
         </member>
-        <member name="M:DataGenStatistics.investigation.Investigation.PlotRemoveQueries(System.Int32[],System.String)">
+        <member name="M:DataGenStatistics.investigation.Investigation.PlotRemoveQueries(System.Collections.Generic.List{System.String},System.Int32[],System.String)">
             <summary>
             Calculates removal time result data for globally given numbers of rows
             Gets plotted with Plot()

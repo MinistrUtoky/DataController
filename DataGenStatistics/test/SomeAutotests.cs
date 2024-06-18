@@ -49,8 +49,7 @@ namespace DataGenStatistics.test
             try
             {
                 DatabaseSandbox.Instance.GenerateAdditionalData(1, 1, 1, 1, 1, 1, 1);
-                DatabaseSandbox.Instance.PutDeltaIntoDB();//PutDeltaPartIntoDB(1,1,1,1,1,1,1);
-                DatabaseSandbox.Instance.database.Clear();
+                DatabaseSandbox.Instance.PutDeltaIntoDB();
             }
             catch (SqlException ex)
             {

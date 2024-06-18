@@ -21,7 +21,7 @@
         </Grid.ColumnDefinitions>
 
         <ScottPlot:WpfPlot x:Name="GeneratorTimings" Grid.Column="3" Grid.Row="1"/>
-        <ScottPlot:WpfPlot x:Name="UpdateQueryTimings" Grid.Column="3" Grid.Row="2"/>
+        <ScottPlot:WpfPlot x:Name="GeneratorTimings2" Grid.Column="3" Grid.Row="2"/>
         <ScottPlot:WpfPlot x:Name="MegafunnySelectQueryTimings" Grid.Column="3" Grid.Row="0"/>
         <ScottPlot:WpfPlot x:Name="InsertQueryTimings" Grid.Row="0"/>
         <ScottPlot:WpfPlot x:Name="FunnyInsertQueryTimings" Grid.Row="1"/>

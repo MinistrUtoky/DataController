@@ -428,16 +428,16 @@ namespace DataGenStatistics.classes
                     sb.Append(", ");
             }
             string sql_Add_New_Table = "CREATE TABLE [dbo].[" + name + "] ( " + sb.ToString() + ");";
-            //sql_Add_New_Table = string.Join("NVARCHAR(MAX)", string.Join("NVARCHAR", sql_Add_New_Table.ToUpper().Split("NVARCHAR(MAX)")).Split("NVARCHAR"));
             sql_Add_New_Table = string.Join("VARCHAR(MAX)", string.Join("VARCHAR", sql_Add_New_Table.ToUpper().Split("VARCHAR(MAX)")).Split("VARCHAR"));
             sql_Add_New_Table = string.Join("VARCHAR(", sql_Add_New_Table.ToUpper().Split("VARCHAR(MAX)("));
-            Trace.WriteLine(sql_Add_New_Table);
             ExecuteSQL(sql_Add_New_Table);
             if (junctionTablesRequired)
+            {
                 GetTableNames().ForEach(tableName =>
                 {
                     CreateManyToManyConnectionTable(name, tableName);
                 });
+            }
         }
 
         /// <summary>
@@ -454,7 +454,7 @@ namespace DataGenStatistics.classes
         /// </param>
         public static void CreateManyToManyConnectionTable(string tableName1, string tableName2)
         {
-            if (tableName1.Equals(tableName2) || (tableName1 + tableName2).Contains(junctionTableEnding)) return;
+            if (tableName1.ToLower().Equals(tableName2.ToLower()) || (tableName1 + tableName2).ToLower().Contains(junctionTableEnding.ToLower())) return;
             CreateNewTable(tableName1 + tableName2 + junctionTableEnding, new List<string>() { "ID", tableName1, tableName2 },
                                  new List<string>() { "INT NOT NULL PRIMARY KEY IDENTITY(1,1)", "INT NOT NULL", "INT NOT NULL" },
                                  new List<string>() { "", tableName1 + "(ID)", tableName2 + "(ID)" }, false);
@@ -520,7 +520,6 @@ namespace DataGenStatistics.classes
                                                         "INNER JOIN sysusers AS s ON o2.uid = s.uid " +
                                                         "WHERE o.type = 'TR';").Rows)
                 {
-                    Trace.WriteLine("DROP TRIGGER " + trigger.ItemArray[0]);
                     ExecuteSQL("DROP TRIGGER " + trigger.ItemArray[0]);
                 }
         }
