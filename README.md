@@ -1,2 +1,2 @@
 # DataController
-MS SQL + WPF database editor
+Custom MS SQL Server based ORM + WPF interfaction + Unit tests + Statistics + Serialization
